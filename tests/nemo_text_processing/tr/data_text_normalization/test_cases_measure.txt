@@ -1,0 +1,79 @@
+0 kg~sıfır kilogram
+1 kg~bir kilogram
+2 kg~iki kilogram
+5kg~beş kilogram
+100 m~yüz metre
+1.000 m~bin metre
+250 g~iki yüz elli gram
+1 km~bir kilometre
+5 mm~beş milimetre
+12cm~on iki santimetre
+10km~on kilometre
+250 mg~iki yüz elli miligram
+1,25 t~bir virgül yirmi beş ton
+500 mL~beş yüz mililitre
+500 ml~beş yüz mililitre
+250mL~iki yüz elli mililitre
+1,5 L~bir virgül beş litre
+2 l~iki litre
+1,5 kg~bir virgül beş kilogram
+0,5 L~sıfır virgül beş litre
+12,05 mm~on iki virgül sıfır beş milimetre
+1.234,5 m~bin iki yüz otuz dört virgül beş metre
+1,5 km~bir virgül beş kilometre
+14,30 s~on dört virgül otuz saniye
+1/2 kg~ikide bir kilogram
+3/4 kg~dörtte üç kilogram
+2/3 L~üçte iki litre
+25/100 m~yüzde yirmi beş metre
+20 °C~yirmi santigrat derece
+20°C~yirmi santigrat derece
+-5 °C~eksi beş santigrat derece
+20,5 °C~yirmi virgül beş santigrat derece
+300 K~üç yüz kelvin
+90°~doksan derece
+45,5°~kırk beş virgül beş derece
+20 m²~yirmi metrekare
+20 m2~yirmi metrekare
+10 cm²~on santimetrekare
+5 km²~beş kilometrekare
+5 m³~beş metreküp
+5 m3~beş metreküp
+25 cm³~yirmi beş santimetreküp
+5 s~beş saniye
+250 ms~iki yüz elli milisaniye
+2 h~iki saat
+2 sa~iki saat
+2 sa.~iki saat
+30 dk~otuz dakika
+30 dk.~otuz dakika
+30 min~otuz dakika
+10 sn~on saniye
+10 sn.~on saniye
+90 km/sa~doksan kilometre bölü saat
+90 km/h~doksan kilometre bölü saat
+10 m/s~on metre bölü saniye
+5 kg/m³~beş kilogram bölü metreküp
+9,8 m/s²~dokuz virgül sekiz metre bölü saniye kare
+3/4 kg/m³~dörtte üç kilogram bölü metreküp
+1 milyon km~bir milyon kilometre
+1,5 milyon km~bir virgül beş milyon kilometre
+150 bin kg~yüz elli bin kilogram
+-5 kg~eksi beş kilogram
+-1,5 m~eksi bir virgül beş metre
+-3/4 kg~eksi dörtte üç kilogram
+5 A~beş amper
+500 mA~beş yüz miliamper
+220 V~iki yüz yirmi volt
+154 kV~yüz elli dört kilovolt
+60 W~altmış vat
+2,5 kW~iki virgül beş kilovat
+100 MW~yüz megavat
+150 kWh~yüz elli kilovatsaat
+50 Hz~elli hertz
+100 kHz~yüz kilohertz
+98,5 MHz~doksan sekiz virgül beş megahertz
+2,4 GHz~iki virgül dört gigahertz
+10 J~on jul
+9,8 N~dokuz virgül sekiz nevton
+1 bar~bir bar
