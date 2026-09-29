@@ -1,0 +1,40 @@
+0532 123 45 67~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0532-123-45-67~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0532 123 4567~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0532-123-4567~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+05321234567~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0 532 123 45 67~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0 532 123 4567~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0 (532) 123 45 67~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+(0532) 123 45 67~sıfır beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+0312 234 56 78~sıfır üç yüz on iki iki yüz otuz dört elli altı yetmiş sekiz
+0 312 234 56 78~sıfır üç yüz on iki iki yüz otuz dört elli altı yetmiş sekiz
+0 (312) 234 56 78~sıfır üç yüz on iki iki yüz otuz dört elli altı yetmiş sekiz
+03122345678~sıfır üç yüz on iki iki yüz otuz dört elli altı yetmiş sekiz
+0212 345 67 89~sıfır iki yüz on iki üç yüz kırk beş altmış yedi seksen dokuz
+0216 400 10 20~sıfır iki yüz on altı dört yüz on yirmi
+0232 999 99 99~sıfır iki yüz otuz iki dokuz yüz doksan dokuz doksan dokuz doksan dokuz
+0850 234 56 78~sıfır sekiz yüz elli iki yüz otuz dört elli altı yetmiş sekiz
+0800 211 00 01~sıfır sekiz yüz iki yüz on bir sıfır sıfır sıfır bir
+0900 123 45 67~sıfır dokuz yüz yüz yirmi üç kırk beş altmış yedi
+0532 005 05 00~sıfır beş yüz otuz iki sıfır sıfır beş sıfır beş sıfır sıfır
+0505 000 00 00~sıfır beş yüz beş sıfır sıfır sıfır sıfır sıfır sıfır sıfır
+0555 010 09 10~sıfır beş yüz elli beş sıfır on sıfır dokuz on
++90 532 123 45 67~artı doksan beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
++90 532 123 4567~artı doksan beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
++90-532-123-45-67~artı doksan beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
++905321234567~artı doksan beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
++90 (532) 123 45 67~artı doksan beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
++90 312 234 56 78~artı doksan üç yüz on iki iki yüz otuz dört elli altı yetmiş sekiz
+532 123 45 67~beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+532 123 4567~beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+532-123-45-67~beş yüz otuz iki yüz yirmi üç kırk beş altmış yedi
+312 234 56 78~üç yüz on iki iki yüz otuz dört elli altı yetmiş sekiz
+234 56 78~iki yüz otuz dört elli altı yetmiş sekiz
+234-56-78~iki yüz otuz dört elli altı yetmiş sekiz
+234 5678~iki yüz otuz dört elli altı yetmiş sekiz
+234-5678~iki yüz otuz dört elli altı yetmiş sekiz
+444 12 34~dört yüz kırk dört on iki otuz dört
+444-12-34~dört yüz kırk dört on iki otuz dört
+444 1234~dört yüz kırk dört on iki otuz dört
+444-1234~dört yüz kırk dört on iki otuz dört
