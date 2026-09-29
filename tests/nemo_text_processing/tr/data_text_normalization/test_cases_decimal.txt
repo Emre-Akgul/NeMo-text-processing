@@ -1,0 +1,68 @@
+0,1~sıfır virgül bir
+1,5~bir virgül beş
+3,14~üç virgül on dört
+12,25~on iki virgül yirmi beş
+99,99~doksan dokuz virgül doksan dokuz
+25,75~yirmi beş virgül yetmiş beş
+12,5~on iki virgül beş
+0,5~sıfır virgül beş
+1,01~bir virgül sıfır bir
+1,001~bir virgül sıfır sıfır bir
+12,05~on iki virgül sıfır beş
+0,005~sıfır virgül sıfır sıfır beş
+3,04~üç virgül sıfır dört
+0,01~sıfır virgül sıfır bir
+1,0001~bir virgül sıfır sıfır sıfır bir
+7,09~yedi virgül sıfır dokuz
+1,101~bir virgül yüz bir
+1,105~bir virgül yüz beş
+1,205~bir virgül iki yüz beş
+1,1005~bir virgül bin beş
+2,304~iki virgül üç yüz dört
+10,1010~on virgül bin on
+1,0~bir virgül sıfır
+1,00~bir virgül sıfır sıfır
+1,10~bir virgül on
+1,20~bir virgül yirmi
+1,100~bir virgül yüz
+1,140~bir virgül yüz kırk
+1,500~bir virgül beş yüz
+1,050~bir virgül sıfır elli
+3,140~üç virgül yüz kırk
+1,000~bir virgül sıfır sıfır sıfır
+1,120~bir virgül yüz yirmi
+9,5~dokuz virgül beş
+10,5~on virgül beş
+99,5~doksan dokuz virgül beş
+100,5~yüz virgül beş
+999,5~dokuz yüz doksan dokuz virgül beş
+1000,5~bin virgül beş
+1000000,5~bir milyon virgül beş
+1000000000,5~bir milyar virgül beş
+123456789,5~yüz yirmi üç milyon dört yüz elli altı bin yedi yüz seksen dokuz virgül beş
+1000000000000000,25~bir katrilyon virgül yirmi beş
+1,1~bir virgül bir
+1,1000~bir virgül bin
+1,010~bir virgül sıfır on
+1,0100~bir virgül sıfır yüz
+1.000,5~bin virgül beş
+1.234,5~bin iki yüz otuz dört virgül beş
+12.345,67~on iki bin üç yüz kırk beş virgül altmış yedi
+1.234.567,89~bir milyon iki yüz otuz dört bin beş yüz altmış yedi virgül seksen dokuz
+1.000.000,25~bir milyon virgül yirmi beş
+1.000.000.000,125~bir milyar virgül yüz yirmi beş
+-0,5~eksi sıfır virgül beş
+-1,5~eksi bir virgül beş
+-12,05~eksi on iki virgül sıfır beş
+-0,25~eksi sıfır virgül yirmi beş
+-1000,5~eksi bin virgül beş
+-3,140~eksi üç virgül yüz kırk
+1,5 milyon~bir virgül beş milyon
+2,25 milyar~iki virgül yirmi beş milyar
+3,75 trilyon~üç virgül yetmiş beş trilyon
+0,5 milyon~sıfır virgül beş milyon
+12,05 milyar~on iki virgül sıfır beş milyar
+2 milyon~iki milyon
+1 milyar~bir milyar
+150 milyon~yüz elli milyon
+999 trilyon~dokuz yüz doksan dokuz trilyon
