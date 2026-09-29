@@ -41,7 +41,6 @@ from nemo_text_processing.text_normalization.en.graph_utils import (  # noqa: F4
     GraphFst,
     convert_space,
     delete_extra_space,
-    delete_preserve_order,
     delete_space,
     generator_main,
     insert_space,

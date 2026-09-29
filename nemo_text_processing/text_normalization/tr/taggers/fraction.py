@@ -45,6 +45,15 @@ class FractionFst(GraphFst):
     fraction grammar should not be the permissive one. Exactly one slash is accepted, so
     "29/09/2026" is not a fraction.
 
+    The locative reading is the only one produced, in both deterministic and
+    non-deterministic mode. Turkish also genuinely reads a slash as division, "üç bölü
+    dört" for 3/4, which TDK gives for the slash sign, and the lexical halves "yarım"
+    (1/2) and "çeyrek" (1/4) are ordinary words. Neither belongs in the deterministic
+    output: the locative is the general school reading and the only one that is
+    productive for every denominator. When non-deterministic readings are added, "bölü"
+    is the natural first alternative, and a maths context is where it would be
+    preferred; "yarım" and "çeyrek" would follow as lexical alternatives for two values.
+
     Args:
         cardinal: CardinalFst, supplies the readings of both parts
         deterministic: if True will provide a single transduction option,
