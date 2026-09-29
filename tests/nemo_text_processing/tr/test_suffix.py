@@ -48,6 +48,19 @@ from ..utils import parse_test_case_file
 
 _TEST_CASES = 'tr/data_text_normalization/test_cases_suffix.txt'
 
+# Suffixes TDK joins without an apostrophe: to a written form ending in a full stop, or
+# to a superscript. Left to a later phase.
+_NO_APOSTROPHE_FUTURE_FORMS = ["vb.leri", "Alm.dan", "İng.yi", "No.lu", "No.suz", "T.C.de", "5 m²ye", "5 cm³e"]
+# The same with an apostrophe, which TDK does not write there.
+_APOSTROPHE_WHERE_TDK_HAS_NONE = ["vb.'leri", "Alm.'dan", "No.'lu", "T.C.'de", "5 m²'ye", "5 cm³'e", "5 m2'ye"]
+_APOSTROPHE_WHERE_TDK_HAS_NONE += ["5 dk.'da", "90°'de"]
+# Whitelist abbreviations read in full: apostrophe forms, deferred until the written
+# anchor ("AŞ") can be bridged to the spoken expansion ("anonim şirket").
+_DEFERRED_WHITELIST_SUFFIXES = ["AŞ'nin", "MÖ'de", "MS'te"]
+_OTHER_DEFERRED = ["1980'lerde", "TDK'dekiler", "3/4'ü", "4/8'i", "100€'ya", "0532 123 45 67'yi"]
+_OTHER_DEFERRED += ["https://example.com/foo'da", "1,5 milyon'da", "2'şer", "7,65'lik", "2026-09-29'da"]
+_MALFORMED = ["tdk'den", "Tdk'den", "-5'ten", "TDK'den.", "'da", "2026'"]
+
 # An independent statement of the rules.
 _VOWELS = "aeıioöuü"
 _VOICELESS = "çfhkpsşt"
@@ -171,7 +184,8 @@ class TestSuffixMorphology:
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_harmony_exceptions(self):
-        """TDK: "saat, -ti" and "jul, -lü" take front vowel suffixes."""
+        """TDK: "saat, -ti" and "jul, -lü" take front vowel suffixes; "kilovatsaat"
+        follows its final word "saat"."""
         exceptions = morphology.HARMONY_EXCEPTIONS
         locative = morphology.inflect(morphology.LOCATIVE, exceptions=exceptions)
         accusative = morphology.inflect(morphology.ACCUSATIVE, exceptions=exceptions)
@@ -247,16 +261,31 @@ class TestSuffix:
     def test_wrong_allomorph_is_rejected(self, written):
         assert not self._accepts(written)
 
-    @parameterized.expand(
-        [(w,) for w in ["vb.leri", "Alm.dan", "İng.yi", "No.lu", "No.suz", "vb.'leri", "Alm.'dan", "No.'lu"]]
-        + [(w,) for w in ["T.C.'de", "AŞ'nin", "MÖ'de", "MS'te", "5 m²'ye", "5 cm³'e", "5 m²ye", "5 m2'ye"]]
-        + [(w,) for w in ["5 dk.'da", "90°'de", "1980'lerde", "TDK'dekiler", "3/4'ü", "4/8'i", "100€'ya"]]
-        + [(w,) for w in ["0532 123 45 67'yi", "https://example.com/foo'da", "1,5 milyon'da", "2'şer", "7,65'lik"]]
-        + [(w,) for w in ["2026-09-29'da", "tdk'den", "Tdk'den", "-5'ten", "TDK'den.", "'da", "2026'"]]
-    )
+    @parameterized.expand([(w,) for w in _NO_APOSTROPHE_FUTURE_FORMS])
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
-    def test_deferred_and_malformed_forms_are_rejected(self, written):
+    def test_no_apostrophe_forms_are_left_to_a_later_phase(self, written):
+        """TDK joins these suffixes without an apostrophe; not part of this grammar."""
+        assert not self._accepts(written)
+
+    @parameterized.expand([(w,) for w in _APOSTROPHE_WHERE_TDK_HAS_NONE])
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_apostrophe_where_tdk_has_none_is_rejected(self, written):
+        assert not self._accepts(written)
+
+    @parameterized.expand([(w,) for w in _DEFERRED_WHITELIST_SUFFIXES])
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_whitelist_expansions_are_deferred(self, written):
+        """Apostrophe forms, but spelled after the abbreviation and spoken as the
+        expansion; they need a written anchor to spoken expansion bridge."""
+        assert not self._accepts(written)
+
+    @parameterized.expand([(w,) for w in _OTHER_DEFERRED + _MALFORMED])
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_other_deferred_and_malformed_forms_are_rejected(self, written):
         assert not self._accepts(written)
 
     @pytest.mark.run_only_on('CPU')

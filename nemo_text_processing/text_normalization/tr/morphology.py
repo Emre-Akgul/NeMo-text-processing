@@ -13,8 +13,12 @@
 # limitations under the License.
 
 """
-Minimal Turkish suffixation helpers, shared by the grammars that attach a suffix to a
-spoken number.
+The shared Turkish inflection layer of the text normalization grammars.
+
+It attaches suffixes to spoken readings: the ordinal suffix of OrdinalFst, the
+locative of FractionFst's denominator, and the suffixes written after an apostrophe
+that SuffixFst reads on numbers, dates, times, percentages, units, currency words,
+acronyms and addresses.
 
 Turkish suffixes are productive: the shape of a suffix is computed from the stem rather
 than looked up per word. Two independent decisions are modelled here.
@@ -33,10 +37,22 @@ The two are orthogonal, which is why one builder covers both: a suffix template 
 given per final-segment class (vowel, voiced consonant, voiceless consonant) and the
 harmonic vowel is substituted into whichever template applies.
 
-Only what the ordinal and fraction grammars need is implemented. This is deliberately
-not a general Turkish morphological analyzer: buffer consonants beyond what a template
-spells out, stem-final voicing of ordinary nouns, and the compounding rules are all out
-of scope, and the numeral lexicon does not need them.
+On top of these, the module provides:
+
+    - a deliberately limited inventory of productive suffixes (``SuffixSpec``): the
+      locative, ablative, dative, accusative, genitive, instrumental, plural, third
+      person possessive and ordinal, with their buffer consonants (y, n, s) spelled
+      out in each suffix's templates;
+    - lexical stem alternation, applied only where a table lists it: the numerals'
+      "dört" -> "dörd" before a vowel initial suffix, and no general softening;
+    - harmony exceptions, words whose suffixes do not follow their last vowel;
+    - suffix validation against a spoken stem (``suffix_validator``), and against a
+      separate spelling anchor where a written form is spelled after one reading and
+      spoken as another (``inflect_by_anchor``, "TL'ye" -> "yüz liraya").
+
+This is productive morphology for text normalization, not general purpose Turkish
+morphology: there is no analysis of arbitrary words, no suffix stacking, no
+derivational morphology and no compounding rules.
 """
 
 import pynini
@@ -62,8 +78,10 @@ _STEM_CHAR = pynini.union(TR_ALPHA, NEMO_SPACE).optimize()
 HIGH_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_high.tsv"))
 LOW_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_low.tsv"))
 
-# Words whose suffixes do not harmonize with their last vowel, as TDK records them
-# ("saat, -ti"; "jul, -lü"), with the vowel their suffixes harmonize with instead.
+# Words whose suffixes do not harmonize with their last vowel, with the vowel their
+# suffixes harmonize with instead. TDK records "saat" ("saat, -ti") and "jul"
+# ("jul, -lü"); "kilovatsaat" is listed because it ends in "saat" and its suffixes
+# follow that word.
 HARMONY_EXCEPTIONS = load_labels(get_abs_path("data/morphology/harmony_exceptions.tsv"))
 
 

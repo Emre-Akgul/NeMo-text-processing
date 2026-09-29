@@ -72,9 +72,10 @@ class SuffixFst(GraphFst):
     For a number, the suffix is chosen by the spoken reading and inflects it, and the
     one lexical stem alternation of the numerals applies before a vowel initial suffix
     ("4'e" -> "dörde", but "40'a" -> "kırka", "3'ü" -> "üçü"). Abbreviations, units,
-    currencies and addresses never alternate ("TÜBİTAK'ın" -> "tübitakın"). The few
-    words whose suffixes do not follow their last vowel are listed as TDK records them,
-    in data/morphology/harmony_exceptions.tsv: "90 km/sa'le" -> "... saatle".
+    currencies and addresses never alternate ("TÜBİTAK'ın" -> "tübitakın"). Words
+    whose suffixes do not follow their last vowel are listed in
+    data/morphology/harmony_exceptions.tsv: "saat" and "jul", which TDK records, and
+    "kilovatsaat", which ends in "saat" ("90 km/sa'le" -> "... saatle").
 
     A currency code is the one case where the pronunciation that chooses the written
     suffix is not the one spoken: "TL'ye" is spelled after the letter names "te le",
@@ -93,10 +94,17 @@ class SuffixFst(GraphFst):
           without an apostrophe;
         - host names and e-mail addresses ("example.com'da"), not URLs with a path,
           whose last segment has no known Turkish pronunciation.
-    Not accepted: fractions, whose written suffix TDK ties to a "bölü" reading that
-    FractionFst does not use, telephone numbers, decimal quantities ("1,5 milyon'da"),
-    whitelist abbreviations, which TDK suffixes without an apostrophe ("vb.leri"),
-    more than one suffix ("1980'lerde"), and a sentence final full stop.
+    Not accepted:
+        - forms TDK suffixes without an apostrophe: abbreviations ending in a full stop
+          ("vb.leri", "No.lu", "T.C.de") and superscript units ("m²ye");
+        - whitelist abbreviations read in full ("AŞ", "MÖ", "MS"), which take an
+          apostrophe but are spelled after the abbreviation and spoken as the
+          expansion; they need their own bridge from the written anchor to the spoken
+          expansion, as currency codes have;
+        - fractions, whose written suffix TDK ties to a "bölü" reading that
+          FractionFst does not use, telephone numbers, URL paths, currency symbols,
+          decimal quantities ("1,5 milyon'da"), derived forms ("7,65'lik"), more than
+          one suffix ("1980'lerde"), and a sentence final full stop.
 
     Args:
         cardinal: CardinalFst
