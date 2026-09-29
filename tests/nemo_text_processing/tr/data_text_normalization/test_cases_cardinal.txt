@@ -1,0 +1,106 @@
+0~sıfır
+1~bir
+2~iki
+3~üç
+4~dört
+5~beş
+6~altı
+7~yedi
+8~sekiz
+9~dokuz
+10~on
+11~on bir
+12~on iki
+13~on üç
+14~on dört
+15~on beş
+16~on altı
+17~on yedi
+18~on sekiz
+19~on dokuz
+20~yirmi
+30~otuz
+40~kırk
+50~elli
+60~altmış
+70~yetmiş
+80~seksen
+90~doksan
+100~yüz
+101~yüz bir
+105~yüz beş
+110~yüz on
+111~yüz on bir
+119~yüz on dokuz
+120~yüz yirmi
+150~yüz elli
+199~yüz doksan dokuz
+200~iki yüz
+201~iki yüz bir
+300~üç yüz
+500~beş yüz
+700~yedi yüz
+900~dokuz yüz
+990~dokuz yüz doksan
+999~dokuz yüz doksan dokuz
+1000~bin
+1001~bin bir
+1010~bin on
+1011~bin on bir
+1100~bin yüz
+1101~bin yüz bir
+1110~bin yüz on
+1234~bin iki yüz otuz dört
+2000~iki bin
+2001~iki bin bir
+5000~beş bin
+9999~dokuz bin dokuz yüz doksan dokuz
+10000~on bin
+10001~on bin bir
+12345~on iki bin üç yüz kırk beş
+20000~yirmi bin
+99999~doksan dokuz bin dokuz yüz doksan dokuz
+100000~yüz bin
+100001~yüz bin bir
+123456~yüz yirmi üç bin dört yüz elli altı
+500000~beş yüz bin
+999998~dokuz yüz doksan dokuz bin dokuz yüz doksan sekiz
+999999~dokuz yüz doksan dokuz bin dokuz yüz doksan dokuz
+998~dokuz yüz doksan sekiz
+1000000~bir milyon
+1000001~bir milyon bir
+999999999~dokuz yüz doksan dokuz milyon dokuz yüz doksan dokuz bin dokuz yüz doksan dokuz
+1000000000~bir milyar
+10000000~on milyon
+100000000~yüz milyon
+10000000000~on milyar
+100000000000~yüz milyar
+1000000000000~bir trilyon
+10000000000000~on trilyon
+100000000000000~yüz trilyon
+1000000000000000~bir katrilyon
+10000000000000000~on katrilyon
+100000000000000000~yüz katrilyon
+1000000000000000000~bir kentilyon
+10000000000000000000~on kentilyon
+100000000000000000000~yüz kentilyon
+2000000~iki milyon
+3000000~üç milyon
+2000000000~iki milyar
+2500000000~iki milyar beş yüz milyon
+1234567890~bir milyar iki yüz otuz dört milyon beş yüz altmış yedi bin sekiz yüz doksan
+987654321~dokuz yüz seksen yedi milyon altı yüz elli dört bin üç yüz yirmi bir
+123456789012345678901~yüz yirmi üç kentilyon dört yüz elli altı katrilyon yedi yüz seksen dokuz trilyon on iki milyar üç yüz kırk beş milyon altı yüz yetmiş sekiz bin dokuz yüz bir
+999999999999999999999~dokuz yüz doksan dokuz kentilyon dokuz yüz doksan dokuz katrilyon dokuz yüz doksan dokuz trilyon dokuz yüz doksan dokuz milyar dokuz yüz doksan dokuz milyon dokuz yüz doksan dokuz bin dokuz yüz doksan dokuz
+-1~eksi bir
+-5~eksi beş
+-100~eksi yüz
+-1000~eksi bin
+-1000000~eksi bir milyon
+-999999~eksi dokuz yüz doksan dokuz bin dokuz yüz doksan dokuz
+1.234~bin iki yüz otuz dört
+1.000~bin
+12.345~on iki bin üç yüz kırk beş
+1.234.567~bir milyon iki yüz otuz dört bin beş yüz altmış yedi
+1.000.000~bir milyon
+999.999.999~dokuz yüz doksan dokuz milyon dokuz yüz doksan dokuz bin dokuz yüz doksan dokuz
