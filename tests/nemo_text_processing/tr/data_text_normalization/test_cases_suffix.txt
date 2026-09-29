@@ -1,0 +1,69 @@
+2026'da~iki bin yirmi altıda
+3'ten~üçten
+6'dan~altıdan
+4'e~dörde
+4'ü~dördü
+4'ün~dördün
+40'a~kırka
+3'ü~üçü
+2'yle~ikiyle
+2'si~ikisi
+2'yi~ikiyi
+6'sı~altısı
+1980'ler~bin dokuz yüz seksenler
+1.000'de~binde
+0'dan~sıfırdan
+100'e~yüze
+14'ten~on dörtten
+8'inci~sekizinci
+2'nci~ikinci
+4'üncü~dördüncü
+2026'ncı~iki bin yirmi altıncı
+12,5'te~on iki virgül beşte
+3,14'ün~üç virgül on dördün
+0,5'i~sıfır virgül beşi
+29.09.2026'da~yirmi dokuz eylül iki bin yirmi altıda
+29/09/2026'da~yirmi dokuz eylül iki bin yirmi altıda
+29 Eylül 2026'da~yirmi dokuz eylül iki bin yirmi altıda
+29 Eylül'de~yirmi dokuz eylülde
+1 Ocak 2024'e~bir ocak iki bin yirmi dörde
+09.15'te~dokuz on beşte
+17.30'da~on yedi otuzda
+14.00'te~on dörtte
+14:30'dan~on dört otuzdan
+%25'i~yüzde yirmi beşi
+%4'ü~yüzde dördü
+%25'te~yüzde yirmi beşte
+%25'ten~yüzde yirmi beşten
+%12,5'e~yüzde on iki virgül beşe
+100 TL'ye~yüz liraya
+100 TL'nin~yüz liranın
+100 TL'de~yüz lirada
+100 TRY'ye~yüz liraya
+100 USD'ye~yüz dolara
+100 EUR'ye~yüz avroya
+100 GBP'ye~yüz sterline
+12,50 TL'ye~on iki lira elli kuruşa
+5 kg'dan~beş kilogramdan
+20 m'de~yirmi metrede
+3 cm'yi~üç santimetreyi
+10 mm'den~on milimetreden
+20 °C'de~yirmi santigrat derecede
+90 km/sa'le~doksan kilometre bölü saatle
+TDK'den~te de keden
+THY'de~te he yede
+TRT'den~te re teden
+TL'nin~te lenin
+PKK'ya~pe ka kaya
+BMW'de~be me vede
+CPU'da~si pi yuda
+GPU'da~ci pi yuda
+NATO'dan~natodan
+ASELSAN'da~aselsanda
+BOTAŞ'ın~botaşın
+TÜBİTAK'ın~tübitakın
+UNESCO'ya~uneskoya
+TÖMER'e~tömere
+example.com'da~example nokta komda
+user@example.com'a~user et example nokta koma
+example.com.tr'de~example nokta kom nokta te rede

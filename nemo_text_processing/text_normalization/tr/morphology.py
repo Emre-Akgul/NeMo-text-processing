@@ -43,6 +43,8 @@ import pynini
 from pynini.lib import pynutil
 
 from nemo_text_processing.text_normalization.tr.graph_utils import (
+    _TR_VOICELESS_CONSONANTS,
+    _TR_VOWELS_LOWER,
     NEMO_SIGMA,
     NEMO_SPACE,
     TR_ALPHA,
@@ -59,6 +61,10 @@ _STEM_CHAR = pynini.union(TR_ALPHA, NEMO_SPACE).optimize()
 
 HIGH_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_high.tsv"))
 LOW_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_low.tsv"))
+
+# Words whose suffixes do not harmonize with their last vowel, as TDK records them
+# ("saat, -ti"; "jul, -lü"), with the vowel their suffixes harmonize with instead.
+HARMONY_EXCEPTIONS = load_labels(get_abs_path("data/morphology/harmony_exceptions.tsv"))
 
 
 def _suffix_by_final_segment(harmony, after_vowel: str, after_voiced: str, after_voiceless: str):
@@ -182,3 +188,193 @@ ORDINAL_MORPHOLOGY = pynini.compose(ORDINAL_STEM_ALTERNATION, ORDINAL_SUFFIX).op
 # No stem alternation applies: the locative begins with a consonant, so the stem final
 # devoicing that produces "dördüncü" does not fire and 1/4 is "dörtte bir".
 LOCATIVE_SUFFIX = assimilating_suffix(after_vowel="d{vowel}", after_voiced="d{vowel}", after_voiceless="t{vowel}")
+
+
+class SuffixSpec:
+    """
+    One Turkish suffix, described by its templates per final segment class of the
+    stem, as for ``assimilating_suffix``: ``{vowel}`` marks the harmonic vowel.
+
+    Written after an apostrophe, a suffix is spelled exactly as it is spoken, so one
+    description gives both the written allomorph that is correct for a stem and the
+    spoken inflected form. Only the stem may differ between the two: a numeral
+    alternates before a vowel initial suffix ("4'e" -> "dörde"), see ``inflect``.
+
+    Args:
+        name: short name, e.g. "locative"
+        harmony: harmony table, LOW_VOWEL_HARMONY or HIGH_VOWEL_HARMONY
+        after_vowel: template after a vowel final stem
+        after_voiced: template after a voiced consonant
+        after_voiceless: template after a voiceless consonant
+    """
+
+    def __init__(self, name: str, harmony, after_vowel: str, after_voiced: str, after_voiceless: str):
+        self.name = name
+        self.harmony = harmony
+        self.after_vowel = after_vowel
+        self.after_voiced = after_voiced
+        self.after_voiceless = after_voiceless
+
+    def attach(self, prefix: str = "", exceptions=None) -> "pynini.FstLike":
+        """
+        Appends the suffix, preceded by ``prefix``, to a stem: "altı" -> "altıda".
+
+        Args:
+            prefix: written before the suffix, e.g. an apostrophe
+            exceptions: (word, vowel) pairs, e.g. HARMONY_EXCEPTIONS: a stem whose last
+                word is listed harmonizes with the given vowel, "saat" -> "saatte"
+
+        Returns a pynini.FstLike
+        """
+        templates = [prefix + self.after_vowel, prefix + self.after_voiced, prefix + self.after_voiceless]
+        regular = _suffix_by_final_segment(self.harmony, *templates)
+        if not exceptions:
+            return regular
+
+        def ending_in(word: str) -> "pynini.FstLike":
+            return pynini.closure(pynini.closure(_STEM_CHAR) + NEMO_SPACE, 0, 1) + word
+
+        harmony = dict(self.harmony)
+        listed = pynini.union(*[ending_in(word) for word, _ in exceptions])
+        branches = [pynini.compose(pynini.difference(pynini.closure(_STEM_CHAR), listed), regular)]
+        for word, vowel in exceptions:
+            final = word[-1]
+            template = templates[0 if final in _TR_VOWELS_LOWER else 2 if final in _TR_VOICELESS_CONSONANTS else 1]
+            branches.append(ending_in(word) + pynutil.insert(template.format(vowel=harmony[vowel])))
+        return pynini.union(*branches).optimize()
+
+    @property
+    def vowel_initial_after_consonant(self) -> bool:
+        """Whether the suffix begins with a vowel after a consonant final stem, which is
+        where a stem such as "dört" alternates."""
+        return self.after_voiceless.startswith("{vowel}")
+
+
+LOCATIVE = SuffixSpec("locative", LOW_VOWEL_HARMONY, "d{vowel}", "d{vowel}", "t{vowel}")
+ABLATIVE = SuffixSpec("ablative", LOW_VOWEL_HARMONY, "d{vowel}n", "d{vowel}n", "t{vowel}n")
+DATIVE = SuffixSpec("dative", LOW_VOWEL_HARMONY, "y{vowel}", "{vowel}", "{vowel}")
+ACCUSATIVE = SuffixSpec("accusative", HIGH_VOWEL_HARMONY, "y{vowel}", "{vowel}", "{vowel}")
+GENITIVE = SuffixSpec("genitive", HIGH_VOWEL_HARMONY, "n{vowel}n", "{vowel}n", "{vowel}n")
+INSTRUMENTAL = SuffixSpec("instrumental", LOW_VOWEL_HARMONY, "yl{vowel}", "l{vowel}", "l{vowel}")
+PLURAL = SuffixSpec("plural", LOW_VOWEL_HARMONY, "l{vowel}r", "l{vowel}r", "l{vowel}r")
+POSSESSIVE_3SG = SuffixSpec("possessive_3sg", HIGH_VOWEL_HARMONY, "s{vowel}", "{vowel}", "{vowel}")
+ORDINAL = SuffixSpec("ordinal", HIGH_VOWEL_HARMONY, "nc{vowel}", "{vowel}nc{vowel}", "{vowel}nc{vowel}")
+
+# The case, number and possessive suffixes, as stem -> inflected stem:
+#   ablative -DAn        altı -> altıdan, beş -> beşten
+#   dative -(y)A         altı -> altıya, on -> ona
+#   accusative -(y)I     iki -> ikiyi, on -> onu
+#   genitive -(n)In      iki -> ikinin, beş -> beşin
+#   instrumental -(y)lA  iki -> ikiyle, beş -> beşle
+#   plural -lAr          iki -> ikiler, on -> onlar
+#   possessive -(s)I     iki -> ikisi, üç -> üçü
+ABLATIVE_SUFFIX = ABLATIVE.attach()
+DATIVE_SUFFIX = DATIVE.attach()
+ACCUSATIVE_SUFFIX = ACCUSATIVE.attach()
+GENITIVE_SUFFIX = GENITIVE.attach()
+INSTRUMENTAL_SUFFIX = INSTRUMENTAL.attach()
+PLURAL_SUFFIX = PLURAL.attach()
+POSSESSIVE_3SG_SUFFIX = POSSESSIVE_3SG.attach()
+
+CASE_SUFFIXES = [LOCATIVE, ABLATIVE, DATIVE, ACCUSATIVE, GENITIVE, INSTRUMENTAL, PLURAL, POSSESSIVE_3SG]
+
+# The one lexical stem alternation of the numerals, dört -> dörd, before a suffix that
+# begins with a vowel ("dörde", "dördü", "dördüncü"). Turkish consonant softening is
+# lexical, so nothing else alternates: "kırka", "üçü", and no acronym or unit softens
+# ("tübitakın").
+NUMERAL_STEM_ALTERNATION = ORDINAL_STEM_ALTERNATION
+
+
+def inflect(spec: SuffixSpec, stem_alternation: "pynini.FstLike" = None, exceptions=None) -> "pynini.FstLike":
+    """
+    Inflects a spoken stem, applying ``stem_alternation`` first where the suffix
+    begins with a vowel after a consonant:
+
+        inflect(DATIVE, NUMERAL_STEM_ALTERNATION): "dört" -> "dörde", "kırk" -> "kırka"
+        inflect(LOCATIVE, NUMERAL_STEM_ALTERNATION): "dört" -> "dörtte"
+
+    Args:
+        spec: the suffix
+        stem_alternation: lexical alternation of the stem's final word, or None
+        exceptions: harmony exceptions, see SuffixSpec.attach
+
+    Returns a pynini.FstLike
+    """
+    attached = spec.attach(exceptions=exceptions)
+    if stem_alternation is not None and spec.vowel_initial_after_consonant:
+        return pynini.compose(stem_alternation, attached).optimize()
+    return attached
+
+
+def written_suffix(spec: SuffixSpec, apostrophe: str = "'", exceptions=None) -> "pynini.FstLike":
+    """
+    Appends the written form of a suffix to a spoken anchor, apostrophe included:
+    "te le" -> "te le'ye". The anchor is the pronunciation Turkish spelling chooses the
+    suffix by; it is not necessarily what is spoken (see ``inflect_by_anchor``).
+    """
+    return spec.attach(prefix=apostrophe, exceptions=exceptions)
+
+
+def suffix_validator(
+    specs, stem_alternation: "pynini.FstLike" = None, apostrophe: str = "'", exceptions=None
+) -> "pynini.FstLike":
+    """
+    Maps a spoken stem followed by an apostrophe and a written suffix to the inflected
+    stem, accepting only the written allomorph the stem selects:
+
+        "iki bin yirmi altı'da" -> "iki bin yirmi altıda"
+        "iki bin yirmi altı'de" -> rejected
+        "dört'e" -> "dörde" (with NUMERAL_STEM_ALTERNATION)
+
+    Where the anchor is the spoken stem, this is the whole of the suffix logic: the
+    written suffix is checked against the stem and the output inflects the same stem.
+
+    Args:
+        specs: the suffixes to accept
+        stem_alternation: lexical alternation of the stem's final word, or None
+        apostrophe: the apostrophe expected in the input
+        exceptions: harmony exceptions, see SuffixSpec.attach
+
+    Returns a pynini.FstLike
+    """
+    return pynini.union(
+        *[
+            pynini.compose(
+                pynini.invert(written_suffix(spec, apostrophe, exceptions)),
+                inflect(spec, stem_alternation, exceptions),
+            )
+            for spec in specs
+        ]
+    ).optimize()
+
+
+def inflect_by_anchor(
+    anchor: str, specs, stem_alternation: "pynini.FstLike" = None, apostrophe: str = "'", exceptions=None
+):
+    """
+    For a written form whose suffix is chosen by a different pronunciation than the one
+    spoken, e.g. a currency code: "TL'ye" is spelled after "te le", but "100 TL'ye" is
+    read "yüz liraya". Returns a transducer that deletes an apostrophe and the written
+    suffix ``anchor`` selects, and appends the suffix to the spoken stem before it:
+
+        inflect_by_anchor("te le", [DATIVE]) applied to "yüz lira'ye" -> "yüz liraya"
+
+    Args:
+        anchor: the pronunciation the written suffix agrees with
+        specs: the suffixes to accept
+        stem_alternation: lexical alternation of the spoken stem, or None
+        apostrophe: the apostrophe expected in the input
+
+    Returns a pynini.FstLike from a spoken stem followed by the written suffix
+    """
+    from pynini.lib import rewrite
+
+    branches = []
+    for spec in specs:
+        suffix = rewrite.top_rewrite(anchor, written_suffix(spec, apostrophe, exceptions))[len(anchor) :]
+        branches.append(
+            pynini.compose(
+                pynini.closure(_STEM_CHAR, 1) + pynutil.delete(suffix), inflect(spec, stem_alternation, exceptions)
+            )
+        )
+    return pynini.union(*branches).optimize()
