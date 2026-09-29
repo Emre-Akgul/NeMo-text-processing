@@ -56,16 +56,23 @@ class ElectronicFst(GraphFst):
         electronic { username: "emre.akgul" domain: "gmail.com" preserve_order: true }
             -> emre nokta akgul et gmail nokta kom
         electronic { protocol: "https://" domain: "example.com/v2" preserve_order: true }
-            -> ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi v iki
+            -> he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi v iki
 
     A run of letters is read as it is written, as a word; digits are read one by one,
     "007" -> "sıfır sıfır yedi"; symbols are read by their Turkish names in
     data/electronic/symbols.tsv. "@" is "et", as an e-mail address is read aloud,
     although TDK names the sign "kuyruklu a"; "/" is "eğik çizgi", TDK's name for the
-    sign, not the "bölü" of division. Protocols are read letter by letter
-    (data/electronic/protocol.tsv), and domain labels whose written form would be read
-    wrongly have their own readings (data/electronic/domain.tsv): "com" is "kom", since a
-    Turkish "c" is not a "k", and "tr" is "te re".
+    sign, not the "bölü" of division.
+
+    Protocol readings are listed in data/electronic/protocol.tsv. "http" and "https"
+    are read with the Turkish letter names, "he te te pe" and "he te te pe se". "www"
+    is "dabılyu dabılyu dabılyu": "w" is not a letter of the Turkish alphabet, so this
+    is the conventional borrowed name of the letter, chosen for electronic addresses,
+    not a Turkish letter name.
+
+    Domain labels whose written form would be read wrongly have their own readings
+    (data/electronic/domain.tsv): "com" is "kom", since a Turkish "c" is not a "k", and
+    "tr" is "te re".
 
     Args:
         deterministic: if True will provide a single transduction option,
@@ -101,7 +108,7 @@ class ElectronicFst(GraphFst):
         # "example.com/foo" -> "example nokta kom eğik çizgi foo"
         self.domain_graph = (host + path).optimize()
 
-        # "https://www." -> "ha te te pe es iki nokta eğik çizgi eğik çizgi ve ve ve nokta"
+        # "https://www." -> "he te te pe se iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta"
         protocol_words = pynini.string_file(get_abs_path("data/electronic/protocol.tsv"))
         self.protocol_graph = pynini.compose(
             pynini.closure(pynini.union(pynini.project(protocol_words, "input"), ":", "/", "."), 1),

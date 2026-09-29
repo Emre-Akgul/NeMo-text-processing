@@ -26,20 +26,21 @@ foo-bar.com~foo tire bar nokta kom
 mail.example.com~mail nokta example nokta kom
 Example.COM~example nokta kom
 xn--tr-abc.com~xn tire tire tr tire abc nokta kom
-http://example.com~ha te te pe iki nokta eğik çizgi eğik çizgi example nokta kom
-https://example.com~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom
-www.example.com~ve ve ve nokta example nokta kom
-http://www.example.com~ha te te pe iki nokta eğik çizgi eğik çizgi ve ve ve nokta example nokta kom
-https://www.example.com~ha te te pe es iki nokta eğik çizgi eğik çizgi ve ve ve nokta example nokta kom
-https://example.com/foo~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo
-https://example.com/foo/bar~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo eğik çizgi bar
-https://example.com/foo_bar~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo alt çizgi bar
-https://example.com/foo-bar~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo tire bar
-https://example.com/v2~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi v iki
-www.example.com/path~ve ve ve nokta example nokta kom eğik çizgi path
-https://example.com/~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi
-https://example.com/docs/index.html~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi docs eğik çizgi index nokta html
-HTTPS://Example.com/Foo~ha te te pe es iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi Foo
-WWW.EXAMPLE.COM~ve ve ve nokta example nokta kom
+http://example.com~he te te pe iki nokta eğik çizgi eğik çizgi example nokta kom
+https://example.com~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom
+www.example.com~dabılyu dabılyu dabılyu nokta example nokta kom
+http://www.example.com~he te te pe iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta example nokta kom
+https://www.example.com~he te te pe se iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta example nokta kom
+https://example.com/foo~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo
+https://example.com/foo/bar~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo eğik çizgi bar
+https://example.com/foo_bar~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo alt çizgi bar
+https://example.com/foo-bar~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi foo tire bar
+https://example.com/v2~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi v iki
+https://www.example.com/v2~he te te pe se iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta example nokta kom eğik çizgi v iki
+www.example.com/path~dabılyu dabılyu dabılyu nokta example nokta kom eğik çizgi path
+https://example.com/~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi
+https://example.com/docs/index.html~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi docs eğik çizgi index nokta html
+HTTPS://Example.com/Foo~he te te pe se iki nokta eğik çizgi eğik çizgi example nokta kom eğik çizgi Foo
+WWW.EXAMPLE.COM~dabılyu dabılyu dabılyu nokta example nokta kom
 github.com/NVIDIA/NeMo~github nokta kom eğik çizgi NVIDIA eğik çizgi NeMo
 example.com.tr/haberler/gündem~example nokta kom nokta te re eğik çizgi haberler eğik çizgi gündem

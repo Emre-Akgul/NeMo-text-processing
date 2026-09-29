@@ -125,11 +125,11 @@ _INVALID = [
 _DIGIT_WORDS = ["sıfır", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"]
 _PROTOCOLS = {
     "": "",
-    "http://": "ha te te pe iki nokta eğik çizgi eğik çizgi",
-    "https://": "ha te te pe es iki nokta eğik çizgi eğik çizgi",
-    "www.": "ve ve ve nokta",
-    "http://www.": "ha te te pe iki nokta eğik çizgi eğik çizgi ve ve ve nokta",
-    "https://www.": "ha te te pe es iki nokta eğik çizgi eğik çizgi ve ve ve nokta",
+    "http://": "he te te pe iki nokta eğik çizgi eğik çizgi",
+    "https://": "he te te pe se iki nokta eğik çizgi eğik çizgi",
+    "www.": "dabılyu dabılyu dabılyu nokta",
+    "http://www.": "he te te pe iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta",
+    "https://www.": "he te te pe se iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta",
 }
 
 
@@ -247,14 +247,27 @@ class TestElectronic:
         assert "bölü" not in reading
 
     @parameterized.expand(
-        [("http://", "ha te te pe iki nokta eğik çizgi eğik çizgi")]
-        + [("https://", "ha te te pe es iki nokta eğik çizgi eğik çizgi"), ("www.", "ve ve ve nokta")]
-        + [("https://www.", "ha te te pe es iki nokta eğik çizgi eğik çizgi ve ve ve nokta")]
+        [("http://", "he te te pe iki nokta eğik çizgi eğik çizgi")]
+        + [("https://", "he te te pe se iki nokta eğik çizgi eğik çizgi"), ("www.", "dabılyu dabılyu dabılyu nokta")]
+        + [("https://www.", "he te te pe se iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta")]
     )
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_protocols(self, protocol, expected):
         assert rewrite.rewrites(protocol, self.verbalizer.protocol_graph) == [expected]
+
+    @parameterized.expand([("http://example.com",), ("https://example.com",), ("www.example.com",)])
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_earlier_protocol_readings_are_gone(self, written):
+        """ "h" is "he" and "s" is "se", the Turkish letter names, and "w" is "dabılyu"."""
+        words = self._normalize(written).split()
+        assert "ha" not in words
+        assert "es" not in words
+        assert "ve" not in words
+        assert self._normalize("https://www.example.com").startswith(
+            "he te te pe se iki nokta eğik çizgi eğik çizgi dabılyu dabılyu dabılyu nokta"
+        )
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
