@@ -1,0 +1,105 @@
+₺0~sıfır lira
+0₺~sıfır lira
+₺1~bir lira
+1₺~bir lira
+₺25~yirmi beş lira
+25₺~yirmi beş lira
+₺1.234~bin iki yüz otuz dört lira
+1.234₺~bin iki yüz otuz dört lira
+100 TL~yüz lira
+100 TRY~yüz lira
+₺1.000~bin lira
+1.000₺~bin lira
+1.000 TL~bin lira
+€1~bir avro
+1€~bir avro
+€100~yüz avro
+100€~yüz avro
+€12,50~on iki avro elli sent
+12,50€~on iki avro elli sent
+€1.234~bin iki yüz otuz dört avro
+1.234€~bin iki yüz otuz dört avro
+1.234 EUR~bin iki yüz otuz dört avro
+25 EUR~yirmi beş avro
+$25~yirmi beş dolar
+25$~yirmi beş dolar
+25 USD~yirmi beş dolar
+$12,50~on iki dolar elli sent
+12,50$~on iki dolar elli sent
+£25~yirmi beş sterlin
+25£~yirmi beş sterlin
+25 GBP~yirmi beş sterlin
+£12,50~on iki sterlin elli peni
+12,50£~on iki sterlin elli peni
+12,50 TL~on iki lira elli kuruş
+12,05 TL~on iki lira beş kuruş
+12,01 TL~on iki lira bir kuruş
+12,99 TL~on iki lira doksan dokuz kuruş
+₺12,50~on iki lira elli kuruş
+12,50₺~on iki lira elli kuruş
+12,5 TL~on iki lira elli kuruş
+12,1 TL~on iki lira on kuruş
+12,9 TL~on iki lira doksan kuruş
+12,5€~on iki avro elli sent
+12,05€~on iki avro beş sent
+12,01€~on iki avro bir sent
+12,99€~on iki avro doksan dokuz sent
+12,00 TL~on iki lira
+12,0 TL~on iki lira
+₺12,00~on iki lira
+12,00₺~on iki lira
+12,00€~on iki avro
+0,50 TL~elli kuruş
+₺0,50~elli kuruş
+0,50₺~elli kuruş
+0,05 TL~beş kuruş
+0,01 TL~bir kuruş
+$0,50~elli sent
+0,50$~elli sent
+0,50€~elli sent
+0,05€~beş sent
+0,01€~bir sent
+0,01£~bir peni
+0,00 TL~sıfır lira
+0,00€~sıfır avro
+12,500 TL~on iki lira elli kuruş
+12,500€~on iki avro elli sent
+12,5000 TL~on iki lira elli kuruş
+12,0500 TL~on iki lira beş kuruş
+12,0000 TL~on iki lira
+12,5000€~on iki avro elli sent
+12,0500€~on iki avro beş sent
+12,0000€~on iki avro
+12,345 TL~on iki virgül üç yüz kırk beş lira
+12,345€~on iki virgül üç yüz kırk beş avro
+12,005 TL~on iki virgül sıfır sıfır beş lira
+12,005€~on iki virgül sıfır sıfır beş avro
+1,2345$~bir virgül iki bin üç yüz kırk beş dolar
+1 milyon TL~bir milyon lira
+2 milyon TL~iki milyon lira
+1,5 milyon TL~bir virgül beş milyon lira
+12,25 milyon TL~on iki virgül yirmi beş milyon lira
+1,5 milyon USD~bir virgül beş milyon dolar
+2 milyar EUR~iki milyar avro
+₺1 milyon~bir milyon lira
+$2 milyon~iki milyon dolar
+€1,5 milyon~bir virgül beş milyon avro
+1 milyon₺~bir milyon lira
+2 milyon$~iki milyon dolar
+1,5 milyon€~bir virgül beş milyon avro
+150 bin TL~yüz elli bin lira
+-100 TL~eksi yüz lira
+-12,50 TL~eksi on iki lira elli kuruş
+-₺100~eksi yüz lira
+-$25~eksi yirmi beş dolar
+-€12,50~eksi on iki avro elli sent
+-£5~eksi beş sterlin
+-100€~eksi yüz avro
+-25$~eksi yirmi beş dolar
+-5£~eksi beş sterlin
+-100₺~eksi yüz lira
+-0,50 TL~eksi elli kuruş
+-1,5 milyon TL~eksi bir virgül beş milyon lira
+-12,345€~eksi on iki virgül üç yüz kırk beş avro
+€14,30~on dört avro otuz sent
+14,30€~on dört avro otuz sent
