@@ -79,9 +79,11 @@ HIGH_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_hig
 LOW_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_low.tsv"))
 
 # Words whose suffixes do not harmonize with their last vowel, with the vowel their
-# suffixes harmonize with instead. TDK records "saat" ("saat, -ti"), "jul" ("jul, -lü")
-# and "general", "orgeneral", "tuğgeneral" ("-li"); "kilovatsaat" is listed because it
-# ends in "saat" and its suffixes follow that word.
+# suffixes harmonize with instead. These are lexical properties of the words, so they
+# apply wherever a spoken stem ends in one of them. TDK records "saat" ("saat, -ti"),
+# "jul" ("jul, -lü") and "general", "orgeneral", "korgeneral", "tümgeneral",
+# "tuğgeneral" ("-li"); "kilovatsaat" is listed because it ends in "saat" and its
+# suffixes follow that word.
 HARMONY_EXCEPTIONS = load_labels(get_abs_path("data/morphology/harmony_exceptions.tsv"))
 
 

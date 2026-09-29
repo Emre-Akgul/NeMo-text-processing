@@ -100,6 +100,35 @@ _FAMILIES = {
     "ordinal": (_HIGH, "ncV", "VncV", "VncV"),
 }
 _CASE_FAMILIES = [family for family in _FAMILIES if family != "ordinal"]
+
+# The general family, whose suffixes TDK gives as front vowel ("general, -li").
+_GENERAL_FAMILY = ["general", "orgeneral", "korgeneral", "tümgeneral", "tuğgeneral"]
+
+
+def _front_vowel_suffix(word, family):
+    """The suffix of a consonant final word harmonizing as if its last vowel were "i",
+    computed without the exception table under test."""
+    harmony, _, after_voiced, after_voiceless = _FAMILIES[family]
+    template = after_voiceless if word[-1] in _VOICELESS else after_voiced
+    return template.replace("V", harmony["i"])
+
+
+def _count_paths(fst):
+    """Number of paths through an acyclic acceptor, without listing them."""
+    assert fst.properties(pynini.ACYCLIC, True) & pynini.ACYCLIC
+    # after topsort, state ids are in topological order
+    fst = pynini.topsort(fst.copy())
+    counts = {state: 0 for state in fst.states()}
+    counts[fst.start()] = 1
+    total = 0
+    for state in fst.states():
+        if fst.final(state) != pynini.Weight.zero(fst.weight_type()):
+            total += counts[state]
+        for arc in fst.arcs(state):
+            counts[arc.nextstate] += counts[state]
+    return total
+
+
 # Every written allomorph of each family, the wrong ones included.
 _ALLOMORPHS = {
     family: sorted(
@@ -232,6 +261,26 @@ class TestSuffixMorphology:
         assert rewrite.rewrites("altı", locative) == ["altıda"]
         # without exceptions the regular harmony applies
         assert rewrite.rewrites("saat", morphology.inflect(morphology.LOCATIVE)) == ["saatta"]
+
+    @parameterized.expand([(word,) for word in _GENERAL_FAMILY])
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_general_family_takes_front_vowel_suffixes(self, word):
+        """A property of the words, not of any abbreviation: every suffix harmonizes
+        front, and the back vowel spelling is rejected."""
+        for family in _CASE_FAMILIES:
+            spec = getattr(morphology, family.upper())
+            suffix = _front_vowel_suffix(word, family)
+            graph = morphology.inflect(spec, exceptions=morphology.HARMONY_EXCEPTIONS)
+            assert rewrite.rewrites(word, graph) == [word + suffix], family
+            validator = morphology.suffix_validator([spec], exceptions=morphology.HARMONY_EXCEPTIONS)
+            back_suffix = _FAMILIES[family][2].replace("V", _FAMILIES[family][0]["a"])
+            if back_suffix != suffix:
+                with pytest.raises(rewrite.Error):
+                    rewrite.top_rewrite(f"{word}'{back_suffix}", validator)
+        assert rewrite.rewrites(
+            word, morphology.inflect(morphology.DATIVE, exceptions=morphology.HARMONY_EXCEPTIONS)
+        ) == [word + "e"]
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
@@ -466,7 +515,19 @@ class TestSuffix:
                 continue
             assert pynini.difference(shared, dotted_abbreviations).optimize().num_states() == 0
             assert shared.properties(pynini.ACYCLIC, True) & pynini.ACYCLIC
-            assert shared.num_states() < 200, shared.num_states()
+            assert _count_paths(shared) == 86
+
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_general_family_is_global(self):
+        """The exception applies in every branch whose last spoken word is one of these
+        words: the dotted whitelist abbreviations, and a Phase 14 address alike."""
+        assert rewrite.rewrites("Gen.e", self.tagger.graph) == ["generale"]
+        assert rewrite.rewrites("Org.e", self.tagger.graph) == ["orgenerale"]
+        assert rewrite.rewrites("Tuğg.de", self.tagger.graph) == ["tuğgeneralde"]
+        assert rewrite.rewrites("x.orgeneral'e", self.tagger.graph) == ["x nokta orgenerale"]
+        for wrong in ["Gen.a", "Org.a", "Org.un", "Tuğg.da", "x.orgeneral'a", "x.general'ın"]:
+            assert not self._accepts(wrong), wrong
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit

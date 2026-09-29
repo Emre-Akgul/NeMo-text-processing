@@ -108,11 +108,18 @@ class SuffixFst(GraphFst):
           "beş dakikada", "5 sa.te" -> "beş saatte", "5 m²ye" -> "beş metrekareye".
           "m2", written without a superscript, is not.
 
+    The harmony exceptions are global lexical data, shared by every branch: any
+    branch whose final spoken word is one of them takes the corrected suffix, the
+    Phase 14 branches included.
+
     For the classifier: an abbreviation ending in a full stop followed by a suffix,
     "Alm.dan", "yy.da", "T.C.de", "No.lu", is also a well formed host name to
-    ElectronicFst, which accepts any top level label of letters. These forms, a finite
-    set, are accepted by both grammars; the suffixed abbreviation is the reading to
-    prefer, since its base is an exact whitelist or acronym spelling.
+    ElectronicFst, which accepts any top level label of letters. The overlap is finite
+    and intended, and is for classifier priority to resolve, not either grammar: an
+    exact suffixed whitelist or acronym spelling is preferred over a bare host name,
+    "Alm.dan" -> "Almancadan", "T.C.de" -> "te cede", "No.lu" -> "nolu". Explicit
+    electronic syntax remains strong evidence the other way: "https://alm.dan" and
+    "user@alm.dan" are addresses.
 
     The whitelist abbreviations in data/suffix/anchored_abbreviations.tsv ("AŞ") take
     an apostrophe and are spelled after their letter names but spoken in full, as a
