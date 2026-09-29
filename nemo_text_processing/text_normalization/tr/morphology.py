@@ -17,19 +17,26 @@ Minimal Turkish suffixation helpers, shared by the grammars that attach a suffix
 spoken number.
 
 Turkish suffixes are productive: the shape of a suffix is computed from the stem rather
-than looked up per word. The one rule needed so far is four way vowel harmony for
-high vowel suffixes, where the suffix vowel is determined by the *last vowel of the
-stem*:
+than looked up per word. Two independent decisions are modelled here.
 
-    a, ı -> ı        o, u -> u
-    e, i -> i        ö, ü -> ü
+**Vowel harmony** picks the suffix vowel from the *last vowel of the stem*. High vowel
+suffixes harmonize four ways and low vowel suffixes two ways:
 
-and whether the stem ends in a vowel or a consonant selects between two suffix shapes.
+    high: a, ı -> ı   e, i -> i   o, u -> u   ö, ü -> ü
+    low:  a, ı, o, u -> a         e, i, ö, ü -> e
 
-Only what the ordinal grammar needs is implemented here. This is deliberately not a
-general Turkish morphology framework: consonant assimilation, buffer consonants other
-than the ones spelled into a template, and the voicing alternations that apply to
-ordinary nouns are all out of scope, and the numeral lexicon does not need them.
+**Consonant assimilation** picks the suffix's initial consonant from the *last segment
+of the stem*: a suffix beginning with d takes t after a voiceless consonant
+(ç f h k p s ş t) and d elsewhere, including after any vowel.
+
+The two are orthogonal, which is why one builder covers both: a suffix template is
+given per final-segment class (vowel, voiced consonant, voiceless consonant) and the
+harmonic vowel is substituted into whichever template applies.
+
+Only what the ordinal and fraction grammars need is implemented. This is deliberately
+not a general Turkish morphological analyzer: buffer consonants beyond what a template
+spells out, stem-final voicing of ordinary nouns, and the compounding rules are all out
+of scope, and the numeral lexicon does not need them.
 """
 
 import pynini
@@ -40,6 +47,8 @@ from nemo_text_processing.text_normalization.tr.graph_utils import (
     NEMO_SPACE,
     TR_ALPHA,
     TR_CONSONANTS,
+    TR_VOICED_CONSONANTS,
+    TR_VOICELESS_CONSONANTS,
     bos_or_space,
 )
 from nemo_text_processing.text_normalization.tr.utils import get_abs_path, load_labels
@@ -48,43 +57,94 @@ from nemo_text_processing.text_normalization.tr.utils import get_abs_path, load_
 # the spaces between the words of a compound number.
 _STEM_CHAR = pynini.union(TR_ALPHA, NEMO_SPACE).optimize()
 
-HIGH_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony.tsv"))
+HIGH_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_high.tsv"))
+LOW_VOWEL_HARMONY = load_labels(get_abs_path("data/morphology/vowel_harmony_low.tsv"))
 
 
-def harmonic_suffix(after_consonant: str, after_vowel: str) -> "pynini.FstLike":
+def _suffix_by_final_segment(harmony, after_vowel: str, after_voiced: str, after_voiceless: str):
     """
-    Builds a transducer that appends a vowel harmonic suffix to a stem.
+    Shared builder for the suffix helpers below.
 
-    Both arguments are templates containing ``{high}`` wherever the harmonic high vowel
-    belongs. ``after_consonant`` is used when the stem ends in a consonant and
-    ``after_vowel`` when it ends in a vowel, e.g. for the ordinal suffix::
-
-        harmonic_suffix(after_consonant="{high}nc{high}", after_vowel="nc{high}")
-
-    which turns "bir" into "birinci" and "iki" into "ikinci".
+    Each template contains ``{vowel}`` wherever the harmonic vowel belongs, and one of
+    them is chosen by the class of the stem's final segment.
 
     The last vowel of the stem is located without a separate scan: a branch matches a
     vowel followed only by consonants up to the end of the string, and since consonants
-    exclude vowels that vowel is necessarily the last one. The branches are mutually
-    exclusive, so the result stays functional.
+    exclude vowels that vowel is necessarily the last one. Within that, the final
+    consonant is either voiced or voiceless but not both. The branches are therefore
+    mutually exclusive and the result stays functional.
 
     Args:
-        after_consonant: suffix template applied to a consonant final stem
-        after_vowel: suffix template applied to a vowel final stem
+        harmony: list of (stem vowel, harmonic suffix vowel) pairs
+        after_vowel: template for a vowel final stem
+        after_voiced: template for a stem ending in a voiced consonant
+        after_voiceless: template for a stem ending in a voiceless consonant
 
     Returns a pynini.FstLike mapping a stem to the suffixed stem
     """
     anything = pynini.closure(_STEM_CHAR)
+    inner_consonants = pynini.closure(TR_CONSONANTS)
     branches = []
-    for vowel, high in HIGH_VOWEL_HARMONY:
-        branches.append(anything + pynini.accep(vowel) + pynutil.insert(after_vowel.format(high=high)))
+    for vowel, harmonic in harmony:
+        stem = anything + pynini.accep(vowel)
+        branches.append(stem + pynutil.insert(after_vowel.format(vowel=harmonic)))
         branches.append(
-            anything
-            + pynini.accep(vowel)
-            + pynini.closure(TR_CONSONANTS, 1)
-            + pynutil.insert(after_consonant.format(high=high))
+            stem + inner_consonants + TR_VOICED_CONSONANTS + pynutil.insert(after_voiced.format(vowel=harmonic))
+        )
+        branches.append(
+            stem + inner_consonants + TR_VOICELESS_CONSONANTS + pynutil.insert(after_voiceless.format(vowel=harmonic))
         )
     return pynini.union(*branches).optimize()
+
+
+def harmonic_suffix(after_consonant: str, after_vowel: str, harmony=None) -> "pynini.FstLike":
+    """
+    Builds a transducer that appends a vowel harmonic suffix whose initial consonant
+    does not assimilate, e.g. the ordinal suffix::
+
+        harmonic_suffix(after_consonant="{vowel}nc{vowel}", after_vowel="nc{vowel}")
+
+    which turns "bir" into "birinci" and "iki" into "ikinci".
+
+    Args:
+        after_consonant: suffix template applied to a consonant final stem
+        after_vowel: suffix template applied to a vowel final stem
+        harmony: harmony table, four way high vowel harmony by default
+
+    Returns a pynini.FstLike mapping a stem to the suffixed stem
+    """
+    return _suffix_by_final_segment(
+        harmony if harmony is not None else HIGH_VOWEL_HARMONY,
+        after_vowel=after_vowel,
+        after_voiced=after_consonant,
+        after_voiceless=after_consonant,
+    )
+
+
+def assimilating_suffix(after_vowel: str, after_voiced: str, after_voiceless: str, harmony=None) -> "pynini.FstLike":
+    """
+    Builds a transducer that appends a suffix whose initial consonant assimilates in
+    voicing to the stem, e.g. the locative -DA::
+
+        assimilating_suffix(after_vowel="d{vowel}", after_voiced="d{vowel}",
+                            after_voiceless="t{vowel}")
+
+    which turns "altı" into "altıda", "on" into "onda" and "üç" into "üçte".
+
+    Args:
+        after_vowel: suffix template applied to a vowel final stem
+        after_voiced: suffix template applied after a voiced consonant
+        after_voiceless: suffix template applied after a voiceless consonant
+        harmony: harmony table, two way low vowel harmony by default
+
+    Returns a pynini.FstLike mapping a stem to the suffixed stem
+    """
+    return _suffix_by_final_segment(
+        harmony if harmony is not None else LOW_VOWEL_HARMONY,
+        after_vowel=after_vowel,
+        after_voiced=after_voiced,
+        after_voiceless=after_voiceless,
+    )
 
 
 def stem_alternation(labels_path: str) -> "pynini.FstLike":
@@ -108,10 +168,17 @@ def stem_alternation(labels_path: str) -> "pynini.FstLike":
 # The Turkish ordinal suffix, -(X)ncX with X harmonizing over ı/i/u/ü:
 #   consonant final  bir -> birinci, on -> onuncu, yüz -> yüzüncü, kırk -> kırkıncı
 #   vowel final      iki -> ikinci, altı -> altıncı, yirmi -> yirminci
-ORDINAL_SUFFIX = harmonic_suffix(after_consonant="{high}nc{high}", after_vowel="nc{high}")
+ORDINAL_SUFFIX = harmonic_suffix(after_consonant="{vowel}nc{vowel}", after_vowel="nc{vowel}")
 
 # Applied before the suffix: dört -> dörd, giving dördüncü rather than *dörtüncü.
 ORDINAL_STEM_ALTERNATION = stem_alternation("data/ordinal/stem_exceptions.tsv")
 
 # Full ordinal morphology: stem alternation followed by harmonic suffixation.
 ORDINAL_MORPHOLOGY = pynini.compose(ORDINAL_STEM_ALTERNATION, ORDINAL_SUFFIX).optimize()
+
+# The Turkish locative suffix, -DA with the vowel harmonizing over a/e and the
+# consonant assimilating to d/t:
+#   altı -> altıda, iki -> ikide, on -> onda, yüz -> yüzde, üç -> üçte, kırk -> kırkta
+# No stem alternation applies: the locative begins with a consonant, so the stem final
+# devoicing that produces "dördüncü" does not fire and 1/4 is "dörtte bir".
+LOCATIVE_SUFFIX = assimilating_suffix(after_vowel="d{vowel}", after_voiced="d{vowel}", after_voiceless="t{vowel}")

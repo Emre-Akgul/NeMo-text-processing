@@ -41,6 +41,7 @@ from nemo_text_processing.text_normalization.en.graph_utils import (  # noqa: F4
     GraphFst,
     convert_space,
     delete_extra_space,
+    delete_preserve_order,
     delete_space,
     generator_main,
     insert_space,
@@ -65,6 +66,10 @@ _TR_BACK_VOWELS = "aıou"
 _TR_ROUND_VOWELS = "oöuü"
 _TR_UNROUND_VOWELS = "aeıi"
 
+# The voiceless consonants, "fıstıkçı şahap" in the usual Turkish mnemonic. A suffix
+# beginning with d/c/g takes its voiceless counterpart after one of these.
+_TR_VOICELESS_CONSONANTS = "çfhkpsşt"
+
 TO_LOWER = pynini.union(
     *[pynini.cross(u, l) for u, l in zip(_TR_ALPHA_UPPER + _FOREIGN_UPPER, _TR_ALPHA_LOWER + _FOREIGN_LOWER)]
 ).optimize()
@@ -81,6 +86,8 @@ TR_FRONT_VOWELS = pynini.union(*_TR_FRONT_VOWELS).optimize()
 TR_BACK_VOWELS = pynini.union(*_TR_BACK_VOWELS).optimize()
 TR_ROUND_VOWELS = pynini.union(*_TR_ROUND_VOWELS).optimize()
 TR_UNROUND_VOWELS = pynini.union(*_TR_UNROUND_VOWELS).optimize()
+TR_VOICELESS_CONSONANTS = pynini.union(*_TR_VOICELESS_CONSONANTS).optimize()
+TR_VOICED_CONSONANTS = pynini.difference(TR_CONSONANTS, TR_VOICELESS_CONSONANTS).optimize()
 
 # Turkish writes the decimal separator as a comma and groups thousands with a full stop.
 TR_DECIMAL_SEPARATOR = ","

@@ -252,7 +252,7 @@ class TestOrdinalMorphology:
         """The helper is parameterised by template, not hard wired to the ordinal."""
         # locative -de/-da is a two way harmony, expressed as a high vowel template it
         # is not; this checks a different high vowel suffix, the possessive -(s)X.
-        possessive = harmonic_suffix(after_consonant="{high}", after_vowel="s{high}")
+        possessive = harmonic_suffix(after_consonant="{vowel}", after_vowel="s{vowel}")
         assert rewrite.top_rewrite("on", possessive) == "onu"
         assert rewrite.top_rewrite("iki", possessive) == "ikisi"
         assert rewrite.top_rewrite("yüz", possessive) == "yüzü"

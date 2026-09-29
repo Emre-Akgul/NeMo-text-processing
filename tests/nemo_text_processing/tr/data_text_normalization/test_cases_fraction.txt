@@ -1,0 +1,68 @@
+1/2~ikide bir
+1/3~üçte bir
+2/3~üçte iki
+3/4~dörtte üç
+1/4~dörtte bir
+5/8~sekizde beş
+7/10~onda yedi
+9/10~onda dokuz
+1/5~beşte bir
+2/5~beşte iki
+3/8~sekizde üç
+7/8~sekizde yedi
+1/21~yirmi birde bir
+1/22~yirmi ikide bir
+1/23~yirmi üçte bir
+1/24~yirmi dörtte bir
+1/25~yirmi beşte bir
+1/26~yirmi altıda bir
+1/27~yirmi yedide bir
+1/28~yirmi sekizde bir
+1/29~yirmi dokuzda bir
+1/10~onda bir
+1/20~yirmide bir
+1/30~otuzda bir
+1/40~kırkta bir
+1/50~ellide bir
+1/60~altmışta bir
+1/70~yetmişte bir
+1/80~seksende bir
+1/90~doksanda bir
+1/100~yüzde bir
+1/101~yüz birde bir
+1/104~yüz dörtte bir
+1/120~yüz yirmide bir
+1/1000~binde bir
+1/1001~bin birde bir
+1/1000000~bir milyonda bir
+1/1000000000~bir milyarda bir
+1/1000000000000~bir trilyonda bir
+12/25~yirmi beşte on iki
+25/100~yüzde yirmi beş
+101/1000~binde yüz bir
+999/1000~binde dokuz yüz doksan dokuz
+3/42~kırk ikide üç
+5/104~yüz dörtte beş
+7/120~yüz yirmide yedi
+11/2024~iki bin yirmi dörtte on bir
+0/2~ikide sıfır
+0/5~beşte sıfır
+0/100~yüzde sıfır
+1/6~altıda bir
+1/7~yedide bir
+1/9~dokuzda bir
+1/11~on birde bir
+1/12~on ikide bir
+1/13~on üçte bir
+1/14~on dörtte bir
+1/15~on beşte bir
+1/16~on altıda bir
+1/17~on yedide bir
+1/18~on sekizde bir
+1/19~on dokuzda bir
+2024/2025~iki bin yirmi beşte iki bin yirmi dört
+999999/1000000~bir milyonda dokuz yüz doksan dokuz bin dokuz yüz doksan dokuz
+-1/2~eksi ikide bir
+-3/4~eksi dörtte üç
+-1/4~eksi dörtte bir
+-11/2024~eksi iki bin yirmi dörtte on bir
