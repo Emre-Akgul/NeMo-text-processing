@@ -25,19 +25,21 @@ from nemo_text_processing.text_normalization.tr.graph_utils import (
 from nemo_text_processing.text_normalization.tr.utils import get_abs_path
 
 
-def get_quantity(decimal: "pynini.FstLike", cardinal_up_to_thousand: "pynini.FstLike") -> "pynini.FstLike":
+def get_quantity(decimal: "pynini.FstLike", cardinal_one_to_three_digits: "pynini.FstLike") -> "pynini.FstLike":
     """
     Returns an FST that transforms a cardinal or a decimal followed by a spelled out
     quantity word into a numeral, e.g.
         2 milyon -> integer_part: "iki" quantity: "milyon"
         1,5 milyon -> integer_part: "bir" fractional_part: "beş" quantity: "milyon"
+        11,25 bin -> integer_part: "on bir" fractional_part: "yirmi beş" quantity: "bin"
 
-    "bin" is deliberately not a quantity: Turkish writes thousands as digits
-    ("2000", "2.000"), which CardinalFst already reads.
+    Unlike English, which drops "thousand" from the cardinal branch, Turkish keeps
+    "bin": compact forms such as "1,5 bin" and "150 bin" are ordinary written Turkish
+    and are what CLDR lists as the Turkish compact-long pattern for 10^3.
 
     Args:
         decimal: decimal FST, without a sign
-        cardinal_up_to_thousand: cardinal FST restricted to one to three digits
+        cardinal_one_to_three_digits: cardinal FST restricted to one to three digits
 
     Returns a pynini.FstLike
     """
@@ -46,7 +48,7 @@ def get_quantity(decimal: "pynini.FstLike", cardinal_up_to_thousand: "pynini.Fst
 
     res = (
         pynutil.insert("integer_part: \"")
-        + cardinal_up_to_thousand
+        + cardinal_one_to_three_digits
         + pynutil.insert("\"")
         + delete_separating_space
         + pynutil.insert(" quantity: \"")
@@ -120,12 +122,12 @@ class DecimalFst(GraphFst):
         final_graph_wo_sign = self.graph_integer + delete_separator + insert_space + self.graph_fractional
         self.final_graph_wo_sign = final_graph_wo_sign
 
-        self.cardinal_up_to_thousand = pynini.compose(
+        self.cardinal_one_to_three_digits = pynini.compose(
             (NEMO_DIGIT - "0") + pynini.closure(NEMO_DIGIT, 0, 2), cardinal.graph
         ).optimize()
 
         self.final_graph_wo_negative = (
-            final_graph_wo_sign | get_quantity(final_graph_wo_sign, self.cardinal_up_to_thousand)
+            final_graph_wo_sign | get_quantity(final_graph_wo_sign, self.cardinal_one_to_three_digits)
         ).optimize()
 
         final_graph = optional_graph_negative + self.final_graph_wo_negative

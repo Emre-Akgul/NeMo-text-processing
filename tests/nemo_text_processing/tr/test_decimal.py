@@ -96,6 +96,12 @@ _QUANTITIES = [
     ("2,25 milyar", "iki virgül yirmi beş milyar"),
     ("2 milyon", "iki milyon"),
     ("150 milyon", "yüz elli milyon"),
+    # "bin" is a quantity word in Turkish, unlike English "thousand"
+    ("1,5 bin", "bir virgül beş bin"),
+    ("2,5 bin", "iki virgül beş bin"),
+    ("11,25 bin", "on bir virgül yirmi beş bin"),
+    ("2 bin", "iki bin"),
+    ("150 bin", "yüz elli bin"),
 ]
 
 # Written forms that differ only in zeros must not share a reading.
@@ -125,7 +131,7 @@ _INVALID_INPUTS = [
     ("1.234,5,6",),  # two separators
     ("01,5",),  # leading zero in the integer part
     ("1,5milyon",),  # quantity needs a separating space
-    ("1,5 bin",),  # "bin" is not a quantity word
+    ("1,5 yüz",),  # "yüz" is not a quantity word
     ("1,5 milyonuncu",),  # ordinal suffixation, not this grammar
     ("bir virgül beş",),  # already verbalized
     ("1,2.345",),  # separator in the fractional part
@@ -248,7 +254,7 @@ class TestDecimal:
         assert rewrite.top_rewrite("1,5 milyon", self.tagger.final_graph_wo_negative) == (
             'integer_part: "bir" fractional_part: "beş" quantity: "milyon"'
         )
-        assert rewrite.top_rewrite("150", self.tagger.cardinal_up_to_thousand) == "yüz elli"
+        assert rewrite.top_rewrite("150", self.tagger.cardinal_one_to_three_digits) == "yüz elli"
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit

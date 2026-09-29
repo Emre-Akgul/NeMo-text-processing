@@ -66,3 +66,12 @@
 1 milyar~bir milyar
 150 milyon~yüz elli milyon
 999 trilyon~dokuz yüz doksan dokuz trilyon
+1,5 bin~bir virgül beş bin
+2,5 bin~iki virgül beş bin
+11,25 bin~on bir virgül yirmi beş bin
+2 bin~iki bin
+150 bin~yüz elli bin
+1,1 bin~bir virgül bir bin
+10 bin~on bin
+0,5 bin~sıfır virgül beş bin
+1,05 bin~bir virgül sıfır beş bin
