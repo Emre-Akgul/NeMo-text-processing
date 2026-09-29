@@ -1,0 +1,121 @@
+0.~sıfırıncı
+1.~birinci
+2.~ikinci
+3.~üçüncü
+4.~dördüncü
+5.~beşinci
+6.~altıncı
+7.~yedinci
+8.~sekizinci
+9.~dokuzuncu
+10.~onuncu
+11.~on birinci
+12.~on ikinci
+13.~on üçüncü
+14.~on dördüncü
+15.~on beşinci
+16.~on altıncı
+17.~on yedinci
+18.~on sekizinci
+19.~on dokuzuncu
+20.~yirminci
+30.~otuzuncu
+40.~kırkıncı
+50.~ellinci
+60.~altmışıncı
+70.~yetmişinci
+80.~sekseninci
+90.~doksanıncı
+100.~yüzüncü
+200.~iki yüzüncü
+300.~üç yüzüncü
+400.~dört yüzüncü
+500.~beş yüzüncü
+600.~altı yüzüncü
+700.~yedi yüzüncü
+800.~sekiz yüzüncü
+900.~dokuz yüzüncü
+31.~otuz birinci
+32.~otuz ikinci
+33.~otuz üçüncü
+34.~otuz dördüncü
+35.~otuz beşinci
+36.~otuz altıncı
+37.~otuz yedinci
+38.~otuz sekizinci
+39.~otuz dokuzuncu
+91.~doksan birinci
+92.~doksan ikinci
+93.~doksan üçüncü
+94.~doksan dördüncü
+95.~doksan beşinci
+96.~doksan altıncı
+97.~doksan yedinci
+98.~doksan sekizinci
+99.~doksan dokuzuncu
+101.~yüz birinci
+102.~yüz ikinci
+103.~yüz üçüncü
+104.~yüz dördüncü
+105.~yüz beşinci
+106.~yüz altıncı
+107.~yüz yedinci
+108.~yüz sekizinci
+109.~yüz dokuzuncu
+110.~yüz onuncu
+120.~yüz yirminci
+199.~yüz doksan dokuzuncu
+201.~iki yüz birinci
+404.~dört yüz dördüncü
+999.~dokuz yüz doksan dokuzuncu
+1000.~bininci
+1001.~bin birinci
+1004.~bin dördüncü
+1010.~bin onuncu
+1100.~bin yüzüncü
+1234.~bin iki yüz otuz dördüncü
+2000.~iki bininci
+2024.~iki bin yirmi dördüncü
+2026.~iki bin yirmi altıncı
+4000.~dört bininci
+9999.~dokuz bin dokuz yüz doksan dokuzuncu
+10000.~on bininci
+12345.~on iki bin üç yüz kırk beşinci
+100000.~yüz bininci
+123456.~yüz yirmi üç bin dört yüz elli altıncı
+999999.~dokuz yüz doksan dokuz bin dokuz yüz doksan dokuzuncu
+1000000.~bir milyonuncu
+2000000.~iki milyonuncu
+3000000.~üç milyonuncu
+4000000.~dört milyonuncu
+1000000000.~bir milyarıncı
+2000000000.~iki milyarıncı
+1000000000000.~bir trilyonuncu
+1000000000000000.~bir katrilyonuncu
+1000000000000000000.~bir kentilyonuncu
+24.~yirmi dördüncü
+44.~kırk dördüncü
+54.~elli dördüncü
+64.~altmış dördüncü
+74.~yetmiş dördüncü
+84.~seksen dördüncü
+204.~iki yüz dördüncü
+10004.~on bin dördüncü
+1000004.~bir milyon dördüncü
+44444.~kırk dört bin dört yüz kırk dördüncü
+10000000.~on milyonuncu
+100000000.~yüz milyonuncu
+10000000000.~on milyarıncı
+100000000000.~yüz milyarıncı
+10000000000000.~on trilyonuncu
+100000000000000.~yüz trilyonuncu
+10000000000000000.~on katrilyonuncu
+100000000000000000.~yüz katrilyonuncu
+10000000000000000000.~on kentilyonuncu
+100000000000000000000.~yüz kentilyonuncu
+999999999999999999999.~dokuz yüz doksan dokuz kentilyon dokuz yüz doksan dokuz katrilyon dokuz yüz doksan dokuz trilyon dokuz yüz doksan dokuz milyar dokuz yüz doksan dokuz milyon dokuz yüz doksan dokuz bin dokuz yüz doksan dokuzuncu
+1.000.~bininci
+1.234.~bin iki yüz otuz dördüncü
+12.345.~on iki bin üç yüz kırk beşinci
+1.234.567.~bir milyon iki yüz otuz dört bin beş yüz altmış yedinci
+1.000.000.~bir milyonuncu
