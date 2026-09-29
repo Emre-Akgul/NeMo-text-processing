@@ -1,0 +1,69 @@
+1 Ocak 2026~bir ocak iki bin yirmi altı
+29 Eylül 2026~yirmi dokuz eylül iki bin yirmi altı
+23 Nisan 1920~yirmi üç nisan bin dokuz yüz yirmi
+29 Ekim 1923~yirmi dokuz ekim bin dokuz yüz yirmi üç
+31 Aralık 1999~otuz bir aralık bin dokuz yüz doksan dokuz
+19 Mayıs 1919~on dokuz mayıs bin dokuz yüz on dokuz
+30 Ağustos 1922~otuz ağustos bin dokuz yüz yirmi iki
+14 Şubat 2000~on dört şubat iki bin
+15 Temmuz 2006~on beş temmuz iki bin altı
+10 Kasım 1938~on kasım bin dokuz yüz otuz sekiz
+18 Mart 1915~on sekiz mart bin dokuz yüz on beş
+1 Haziran 2024~bir haziran iki bin yirmi dört
+01 Ocak 2026~bir ocak iki bin yirmi altı
+29 eylül 2026~yirmi dokuz eylül iki bin yirmi altı
+29 EYLÜL 2026~yirmi dokuz eylül iki bin yirmi altı
+23 NİSAN 1920~yirmi üç nisan bin dokuz yüz yirmi
+10 KASIM 1938~on kasım bin dokuz yüz otuz sekiz
+31 ARALIK 1999~otuz bir aralık bin dokuz yüz doksan dokuz
+19 MAYIS 1919~on dokuz mayıs bin dokuz yüz on dokuz
+29 EKİM 1923~yirmi dokuz ekim bin dokuz yüz yirmi üç
+1 HAZİRAN 2024~bir haziran iki bin yirmi dört
+14 ŞUBAT 2000~on dört şubat iki bin
+30 AĞUSTOS 1922~otuz ağustos bin dokuz yüz yirmi iki
+29 Eyl. 2026~yirmi dokuz eylül iki bin yirmi altı
+29 Eyl 2026~yirmi dokuz eylül iki bin yirmi altı
+1 Oca. 2026~bir ocak iki bin yirmi altı
+14 Şub. 2000~on dört şubat iki bin
+18 Mar. 1915~on sekiz mart bin dokuz yüz on beş
+23 Nis. 1920~yirmi üç nisan bin dokuz yüz yirmi
+19 May. 1919~on dokuz mayıs bin dokuz yüz on dokuz
+1 Haz. 2024~bir haziran iki bin yirmi dört
+15 Tem. 2006~on beş temmuz iki bin altı
+30 Ağu. 1922~otuz ağustos bin dokuz yüz yirmi iki
+29 Eki. 1923~yirmi dokuz ekim bin dokuz yüz yirmi üç
+10 Kas. 1938~on kasım bin dokuz yüz otuz sekiz
+31 Ara. 1999~otuz bir aralık bin dokuz yüz doksan dokuz
+29 eyl. 2026~yirmi dokuz eylül iki bin yirmi altı
+29 EYL. 2026~yirmi dokuz eylül iki bin yirmi altı
+29 EKİ 1923~yirmi dokuz ekim bin dokuz yüz yirmi üç
+01.01.2026~bir ocak iki bin yirmi altı
+29.09.2026~yirmi dokuz eylül iki bin yirmi altı
+31.12.1999~otuz bir aralık bin dokuz yüz doksan dokuz
+01/01/2026~bir ocak iki bin yirmi altı
+29/09/2026~yirmi dokuz eylül iki bin yirmi altı
+31/12/1999~otuz bir aralık bin dokuz yüz doksan dokuz
+01-01-2026~bir ocak iki bin yirmi altı
+29-09-2026~yirmi dokuz eylül iki bin yirmi altı
+31-12-1999~otuz bir aralık bin dokuz yüz doksan dokuz
+1/1/2026~bir ocak iki bin yirmi altı
+3/4/2026~üç nisan iki bin yirmi altı
+03/04/2026~üç nisan iki bin yirmi altı
+29/9/2026~yirmi dokuz eylül iki bin yirmi altı
+9/9/2026~dokuz eylül iki bin yirmi altı
+1/2/2026~bir şubat iki bin yirmi altı
+12/5/2026~on iki mayıs iki bin yirmi altı
+31/12/2026~otuz bir aralık iki bin yirmi altı
+2026-01-01~bir ocak iki bin yirmi altı
+2026-09-29~yirmi dokuz eylül iki bin yirmi altı
+1923-10-29~yirmi dokuz ekim bin dokuz yüz yirmi üç
+2026/09/29~yirmi dokuz eylül iki bin yirmi altı
+2026.09.29~yirmi dokuz eylül iki bin yirmi altı
+2000-02-14~on dört şubat iki bin
+29 Eylül~yirmi dokuz eylül
+1 Ocak~bir ocak
+23 Nisan~yirmi üç nisan
+Eylül 2026~eylül iki bin yirmi altı
+Ocak 2026~ocak iki bin yirmi altı
+Ekim 1923~ekim bin dokuz yüz yirmi üç
+Eyl. 2026~eylül iki bin yirmi altı
