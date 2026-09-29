@@ -58,7 +58,7 @@ from nemo_text_processing.utils.logging import logger
 # - Classes whose inputs contain several parts are next; single numbers last. No two
 #   of these accept the same input, so their order only matters against splits.
 # - Upper case abbreviations are acronyms when there is evidence for it: an entry of
-#   the acronym table or one of the initialisms TDK gives as read letter by letter.
+#   the acronym table or of data/abbreviation/known_initialisms.tsv.
 #   Any other string of capitals is weighted above an ordinary word, so "EV", "OKUL",
 #   "ANKARA" stay words; the same holds for such a string with a suffix.
 # - Punctuation is kept apart from the words it touches but costs more than a
@@ -66,6 +66,15 @@ from nemo_text_processing.utils.logging import logger
 #   also costs a little per mark, so a token that can take a full stop takes it:
 #   "8.," is an ordinal and a comma, "5 dk.," a measure and a comma; and a run of
 #   marks stays one token, "..." rather than three.
+# - Within a chunk of tokens joined by punctuation, an earlier token takes as much as it
+#   can: a token after a join costs a little per character. "1,2,3" is "1,2" "," "3"
+#   and "3/4/5" is "3/4" "/" "5", where the two readings would otherwise cost the
+#   same. The cost is far below every other difference, so it only ever separates
+#   tokenizations that would otherwise tie.
+# - A word only has to cost more than any semantic token. It is kept small, 3 rather
+#   than the 100 or 200 of other languages, because weights are 32 bit floats: a
+#   sentence's cost grows with its words, and the tie breaker above must stay above
+#   the rounding error of that sum, which it does up to about 270 words.
 _WEIGHTS = {
     "whitelist": 1.01,
     "suffix": 1.02,
@@ -83,9 +92,10 @@ _WEIGHTS = {
     "cardinal": 1.1,
     "punctuation": 2.0,
     "punctuation_mark": 0.1,
-    "word": 100,
-    "unattested_abbreviation": 101,
-    "unattested_suffix": 101,
+    "joined_token_character": 0.0001,
+    "word": 3,
+    "unattested_abbreviation": 3.01,
+    "unattested_suffix": 3.01,
 }
 
 
@@ -102,12 +112,26 @@ class ClassifyFst(GraphFst):
 
     Upper case strings have no lexicon to tell an acronym from a word written in
     capitals. An abbreviation is classified as one when the acronym table of
-    AbbreviationFst lists it or data/abbreviation/known_initialisms.tsv does: TDK's
-    examples of letter by letter initialisms, and "HTTP" and "HTTPS", which
-    ElectronicFst reads letter by letter; otherwise a word wins. AbbreviationFst and
+    AbbreviationFst lists it or data/abbreviation/known_initialisms.tsv does;
+    otherwise a word wins. That file lists established upper case abbreviations drawn
+    from TDK's examples, which are read letter by letter under the Phase 13 initialism
+    policy; TDK establishes the abbreviations and their spelling, and its suffixed
+    examples ("BDT'ye", "TDK'den", "THY'de", "TRT'den", "TL'nin") show suffixes chosen
+    by the last letter's name. It also lists "HTTP" and "HTTPS", which ElectronicFst
+    already reads letter by letter. The list is deliberately short; other
+    initialisms ("PTT", "DSİ") stay words until they are added. AbbreviationFst and
     SuffixFst are unchanged; the classifier splits their languages and weights the
     parts. Lower cased input keeps the whitelist working, but cannot keep the acronym
     distinctions the lower casing has removed.
+
+    Deterministic mode: every character sequence has a tokenization, and realistic
+    input has a unique best one, whose cost is strictly below the next. The known
+    exceptions are synthetic: a currency or percent sign between numbers, which either
+    neighbour or the punctuation may take ("$3$", "%4$", "7,$2$$%"), and a word with
+    an internal apostrophe inside a chain of numbers ("T/1/1'2L18"); such strings can
+    have two tokenizations of equal cost, of which pynini's shortest path search
+    reproducibly returns one. A general leftmost longest tie breaker is left
+    for tokenizer hardening.
 
     Args:
         input_case: accepting either "lower_cased" or "cased" input.
@@ -235,13 +259,15 @@ class ClassifyFst(GraphFst):
         # separated by whitespace: tokens are joined by punctuation, and punctuation
         # may stand at either end, "(5 kg),", "29.09" -> "29" "." "09", or alone. Two
         # tokens never touch without punctuation between them, so a word is never
-        # split, and since whitespace appears only between chunks, every sentence has
-        # one tokenization of lowest weight. Every character is a word character or
-        # punctuation, so every sentence has a tokenization.
+        # split, and whitespace appears only between chunks, so tokenizations can only
+        # differ within a chunk. Every character is a word character or punctuation,
+        # so every sentence has a tokenization.
         whitespace = pynini.compose(pynini.closure(NEMO_WHITE_SPACE, 1), delete_extra_space)
         join = pynutil.insert(" ")
         punct_run = punct + pynini.closure(join + punct)
-        tokens = token + pynini.closure(join + punct_run + join + token)
+        per_character = pynini.closure(pynutil.add_weight(NEMO_CHAR, _WEIGHTS["joined_token_character"]))
+        joined_token = pynini.compose(per_character, token)
+        tokens = token + pynini.closure(join + punct_run + join + joined_token)
         chunk = pynini.union(
             pynini.closure(punct_run + join, 0, 1) + tokens + pynini.closure(join + punct_run, 0, 1),
             punct_run,
