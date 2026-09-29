@@ -1,0 +1,30 @@
+%0~yüzde sıfır
+%1~yüzde bir
+%5~yüzde beş
+%10~yüzde on
+%25~yüzde yirmi beş
+%50~yüzde elli
+%99~yüzde doksan dokuz
+%100~yüzde yüz
+%101~yüzde yüz bir
+%250~yüzde iki yüz elli
+%1000~yüzde bin
+%1000000~yüzde bir milyon
+%1.000~yüzde bin
+%10.000~yüzde on bin
+%1.234~yüzde bin iki yüz otuz dört
+%0,1~yüzde sıfır virgül bir
+%0,01~yüzde sıfır virgül sıfır bir
+%0,05~yüzde sıfır virgül sıfır beş
+%0,5~yüzde sıfır virgül beş
+%1,5~yüzde bir virgül beş
+%1,05~yüzde bir virgül sıfır beş
+%1,25~yüzde bir virgül yirmi beş
+%12,5~yüzde on iki virgül beş
+%12,05~yüzde on iki virgül sıfır beş
+%12,50~yüzde on iki virgül elli
+%99,99~yüzde doksan dokuz virgül doksan dokuz
+%100,5~yüzde yüz virgül beş
+%1.234,5~yüzde bin iki yüz otuz dört virgül beş
+%3,14~yüzde üç virgül on dört
+%0,0~yüzde sıfır virgül sıfır

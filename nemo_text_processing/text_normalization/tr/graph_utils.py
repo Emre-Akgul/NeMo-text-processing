@@ -94,6 +94,7 @@ TR_DECIMAL_SEPARATOR = ","
 TR_THOUSANDS_SEPARATOR = "."
 TR_COMMA_WORD = "virgül"
 TR_MINUS_WORD = "eksi"
+TR_PERCENT_WORD = "yüzde"
 
 bos_or_space = pynini.union("[BOS]", " ")
 eos_or_space = pynini.union("[EOS]", " ")
