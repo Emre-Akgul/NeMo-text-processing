@@ -67,3 +67,36 @@ TÖMER'e~tömere
 example.com'da~example nokta komda
 user@example.com'a~user et example nokta koma
 example.com.tr'de~example nokta kom nokta te rede
+Dr.a~doktora
+Dr.un~doktorun
+Prof.ün~profesörün
+Doç.e~doçente
+Av.ı~avukatı
+Gen.e~generale
+Org.in~orgeneralin
+Bnb.yı~binbaşıyı
+Alm.dan~Almancadan
+İng.yi~İngilizceyi
+Ar.dan~Arapçadan
+Fr.ya~Fransızcaya
+Rus.dan~Rusçadan
+yy.da~yüzyılda
+age.de~adı geçen eserde
+vb.leri~ve benzerleri
+No.lu~nolu
+No.suz~nosuz
+T.C.de~te cede
+T.C.nin~te cenin
+5 dk.da~beş dakikada
+5 sa.te~beş saatte
+5 sn.de~beş saniyede
+5 m²ye~beş metrekareye
+5 cm³e~beş santimetreküpe
+10 km²de~on kilometrekarede
+2 m³ten~iki metreküpten
+9,8 m/s²ye~dokuz virgül sekiz metre bölü saniye kareye
+AŞ'de~anonim şirkette
+AŞ'nin~anonim şirketin
+AŞ'ye~anonim şirkete
+AŞ'den~anonim şirketten
+AŞ'yi~anonim şirketi

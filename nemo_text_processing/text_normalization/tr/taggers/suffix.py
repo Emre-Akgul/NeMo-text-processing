@@ -94,13 +94,34 @@ class SuffixFst(GraphFst):
           without an apostrophe;
         - host names and e-mail addresses ("example.com'da"), not URLs with a path,
           whose last segment has no known Turkish pronunciation.
+    Suffixes TDK joins without an apostrophe, after a full stop or a superscript, are
+    accepted in that spelling, and checked the same way:
+        - whitelist abbreviations ending in a full stop, after their expansion:
+          "Alm.dan" -> "Almancadan", "Dr.a" -> "doktora", "yy.da" -> "yüzyılda";
+          except those whose expansion is a verb, a participle, an adjective or a
+          single letter, listed in data/suffix/unsuffixed_abbreviations.tsv;
+        - the lexical forms in data/suffix/lexical_forms.tsv, whose reading is not the
+          expansion inflected: "vb.leri" -> "ve benzerleri", and "No.lu", "No.suz",
+          which TDK spells after "No." read as a word -> "nolu", "nosuz";
+        - "T.C.de" -> "te cede";
+        - units ending in a full stop, after a space, or in a superscript: "5 dk.da" ->
+          "beş dakikada", "5 sa.te" -> "beş saatte", "5 m²ye" -> "beş metrekareye".
+          "m2", written without a superscript, is not.
+
+    For the classifier: an abbreviation ending in a full stop followed by a suffix,
+    "Alm.dan", "yy.da", "T.C.de", "No.lu", is also a well formed host name to
+    ElectronicFst, which accepts any top level label of letters. These forms, a finite
+    set, are accepted by both grammars; the suffixed abbreviation is the reading to
+    prefer, since its base is an exact whitelist or acronym spelling.
+
+    The whitelist abbreviations in data/suffix/anchored_abbreviations.tsv ("AŞ") take
+    an apostrophe and are spelled after their letter names but spoken in full, as a
+    currency code is: "AŞ'de" is spelled after "a şe" and read "anonim şirkette".
+
     Not accepted:
-        - forms TDK suffixes without an apostrophe: abbreviations ending in a full stop
-          ("vb.leri", "No.lu", "T.C.de") and superscript units ("m²ye");
-        - whitelist abbreviations read in full ("AŞ", "MÖ", "MS"), which take an
-          apostrophe but are spelled after the abbreviation and spoken as the
-          expansion; they need their own bridge from the written anchor to the spoken
-          expansion, as currency codes have;
+        - the same forms with an apostrophe ("Alm.'dan", "5 m²'ye", "T.C.'de");
+        - "MÖ" and "MS", which take an apostrophe but have no attested suffixed
+          reading of their spoken expansions;
         - fractions, whose written suffix TDK ties to a "bölü" reading that
           FractionFst does not use, telephone numbers, URL paths, currency symbols,
           decimal quantities ("1,5 milyon'da"), derived forms ("7,65'lik"), more than
@@ -116,6 +137,7 @@ class SuffixFst(GraphFst):
         measure: MeasureFst
         abbreviation: AbbreviationFst
         electronic: ElectronicFst
+        whitelist: WhiteListFst
         deterministic: if True will provide a single transduction option,
             for False multiple transduction are generated (used for audio-based normalization)
     """
@@ -131,6 +153,7 @@ class SuffixFst(GraphFst):
         measure: GraphFst,
         abbreviation: GraphFst,
         electronic: GraphFst,
+        whitelist: GraphFst,
         deterministic: bool = True,
     ):
         super().__init__(name="suffix", kind="classify", deterministic=deterministic)
@@ -148,6 +171,14 @@ class SuffixFst(GraphFst):
             """written base + apostrophe + suffix -> spoken base + apostrophe + suffix -> inflected"""
             return pynini.compose(base + written_suffix, validator).optimize()
 
+        # After a full stop or a superscript the suffix is written without an
+        # apostrophe; one is inserted so that the same validator reads it.
+        joined_suffix = pynutil.insert(_APOSTROPHE) + pynini.closure(TR_LOWER, 1)
+
+        def joined(base: "pynini.FstLike", validator: "pynini.FstLike") -> "pynini.FstLike":
+            """written base + suffix -> spoken base + apostrophe + suffix -> inflected"""
+            return pynini.compose(base + joined_suffix, validator).optimize()
+
         ends_in_letter = NEMO_SIGMA + TR_ALPHA
 
         # "12,5" -> "on iki virgül beş", joining the graphs DecimalFst joins; no
@@ -164,6 +195,24 @@ class SuffixFst(GraphFst):
         scheme = pynini.union("http", "https", "HTTP", "HTTPS") + "://"
         address_reading = pynini.compose(pynini.closure(scheme, 0, 1) + pynini.closure(not_slash), electronic.graph)
 
+        ends_in_full_stop = NEMO_SIGMA + "."
+        # "Alm." -> "Almanca": whitelist abbreviations ending in a full stop, without
+        # those listed as taking no productive suffix.
+        unsuffixed = pynini.union(
+            *[row[0] for row in load_labels(get_abs_path("data/suffix/unsuffixed_abbreviations.tsv"))]
+        )
+        dotted_whitelist = pynini.compose(
+            pynini.difference(
+                pynini.intersect(pynini.project(whitelist.graph, "input"), ends_in_full_stop), unsuffixed
+            ),
+            whitelist.graph,
+        )
+        # "5 dk." -> "beş dakika", "5 m²" -> "beş metrekare". A dotted unit is joined to
+        # its suffix only with the space TDK writes before the unit: "5dk.da" is also a
+        # well formed host name.
+        dotted_unit_reading = pynini.compose(NEMO_SIGMA + NEMO_SPACE + ends_in_full_stop, measure.graph)
+        superscript_unit_reading = pynini.compose(NEMO_SIGMA + pynini.union("²", "³"), measure.graph)
+
         self.branches = {
             "cardinal": suffixed(cardinal.graph, numeral_with_ordinal),
             "decimal": suffixed(decimal_reading, numeral),
@@ -174,12 +223,38 @@ class SuffixFst(GraphFst):
             "measure": suffixed(unit_reading, word),
             "abbreviation": suffixed(acronym_reading, word),
             "electronic": suffixed(address_reading, word),
+            "dotted_whitelist": joined(dotted_whitelist, word),
+            "lexical": pynini.string_file(get_abs_path("data/suffix/lexical_forms.tsv")).optimize(),
+            "dotted_acronym": joined(pynini.compose(ends_in_full_stop, abbreviation.graph), word),
+            "dotted_unit": joined(dotted_unit_reading, word),
+            "superscript_unit": joined(superscript_unit_reading, word),
+            "anchored_whitelist": self._anchored_whitelist(whitelist, abbreviation, written_suffix),
         }
 
         # "TDK'den" -> "te de keden"
         self.graph = pynini.union(*self.branches.values()).optimize()
 
         self.fst = self.add_tokens(pynutil.insert("value: \"") + self.graph + pynutil.insert("\"")).optimize()
+
+    @staticmethod
+    def _anchored_whitelist(
+        whitelist: GraphFst, abbreviation: GraphFst, written_suffix: "pynini.FstLike"
+    ) -> "pynini.FstLike":
+        """
+        Whitelist abbreviations spelled after their letter names but spoken in full:
+        the suffix is checked against the letter names and appended to the
+        expansion, "AŞ'de" -> "anonim şirkette".
+        """
+        branches = []
+        for (written,) in load_labels(get_abs_path("data/suffix/anchored_abbreviations.tsv")):
+            anchor = rewrite.top_rewrite(written, abbreviation.initialism_graph)
+            spoken = pynini.compose(written, whitelist.graph)
+            branches.append(
+                pynini.compose(
+                    spoken + written_suffix, inflect_by_anchor(anchor, CASE_SUFFIXES, exceptions=HARMONY_EXCEPTIONS)
+                )
+            )
+        return pynini.union(*branches).optimize()
 
     @staticmethod
     def _money(money: GraphFst, abbreviation: GraphFst, written_suffix: "pynini.FstLike") -> "pynini.FstLike":
