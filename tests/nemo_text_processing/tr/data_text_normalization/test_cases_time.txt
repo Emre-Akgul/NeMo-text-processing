@@ -1,0 +1,54 @@
+0:00~sıfır
+00:00~sıfır
+0:01~sıfır sıfır bir
+00:05~sıfır sıfır beş
+1:00~bir
+01:00~bir
+8:05~sekiz sıfır beş
+08:05~sekiz sıfır beş
+08:01~sekiz sıfır bir
+14:09~on dört sıfır dokuz
+09.15~dokuz on beş
+13.00~on üç
+14.30~on dört otuz
+17.30~on yedi otuz
+17.45~on yedi kırk beş
+23:59~yirmi üç elli dokuz
+0.00~sıfır
+00.00~sıfır
+0.01~sıfır sıfır bir
+00.05~sıfır sıfır beş
+1.00~bir
+01.00~bir
+8.05~sekiz sıfır beş
+08.05~sekiz sıfır beş
+08.01~sekiz sıfır bir
+14.09~on dört sıfır dokuz
+09:15~dokuz on beş
+13:00~on üç
+14:30~on dört otuz
+17:30~on yedi otuz
+17:45~on yedi kırk beş
+23.59~yirmi üç elli dokuz
+14:10~on dört on
+14:25~on dört yirmi beş
+14:59~on dört elli dokuz
+8:30~sekiz otuz
+08:30~sekiz otuz
+0:30~sıfır otuz
+00:30~sıfır otuz
+10:00~on
+12.00~on iki
+20:20~yirmi yirmi
+21.40~yirmi bir kırk
+14:00~on dört
+08:00~sekiz
+00:00:00~sıfır sıfır sıfır sıfır sıfır
+08:05:09~sekiz sıfır beş sıfır dokuz
+14:30:05~on dört otuz sıfır beş
+14:00:05~on dört sıfır sıfır sıfır beş
+14:30:00~on dört otuz sıfır sıfır
+14:00:00~on dört sıfır sıfır sıfır sıfır
+23:59:59~yirmi üç elli dokuz elli dokuz
+8:05:09~sekiz sıfır beş sıfır dokuz
+12:34:56~on iki otuz dört elli altı
