@@ -15,10 +15,8 @@
 """
 End to end tests for the Turkish sentence classifier and final verbalizer.
 
-``lang="tr"`` is not registered in normalize.py yet, so ``_normalizer`` sets up a
-Normalizer with the Turkish grammars without its constructor. ``Normalizer.normalize``
-then runs unchanged: the classifier, the token parser, the field permutations that
-respect ``preserve_order``, and the final verbalizer.
+The tests go through the public ``Normalizer``: the classifier, the token parser, the
+field permutations that respect ``preserve_order``, and the final verbalizer.
 """
 
 import glob
@@ -29,11 +27,8 @@ import pynini
 import pytest
 from parameterized import parameterized
 from pynini.lib import rewrite
-from sacremoses import MosesDetokenizer
 
 from nemo_text_processing.text_normalization.normalize import Normalizer
-from nemo_text_processing.text_normalization.token_parser import TokenParser
-from nemo_text_processing.text_normalization.tr.taggers.tokenize_and_classify import ClassifyFst
 from nemo_text_processing.text_normalization.tr.verbalizers.verbalize_final import VerbalizeFinalFst
 
 from ..utils import parse_test_case_file
@@ -47,16 +42,7 @@ _UNATTESTED_ABBREVIATIONS = {"BM", "TV", "PTT", "DSİ", "KHK", "TC", "AI", "ÇŞ
 
 
 def _normalizer(deterministic: bool = True) -> Normalizer:
-    normalizer = Normalizer.__new__(Normalizer)
-    normalizer.input_case = "cased"
-    normalizer.lang = "tr"
-    normalizer.post_processor = None
-    normalizer.tagger = ClassifyFst(deterministic=deterministic)
-    normalizer.verbalizer = VerbalizeFinalFst(deterministic=deterministic)
-    normalizer.parser = TokenParser()
-    normalizer.max_number_of_permutations_per_split = 729
-    normalizer.moses_detokenizer = MosesDetokenizer(lang="tr")
-    return normalizer
+    return Normalizer(input_case="cased", lang="tr", deterministic=deterministic)
 
 
 _NORMALIZER = _normalizer()

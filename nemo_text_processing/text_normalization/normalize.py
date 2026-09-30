@@ -79,6 +79,11 @@ To integrate Normalizer in your script:
                                         output_filename=<PATH TO OUTPUT .JSON MANIFEST>, text_field="text",
                                         punct_pre_process=False, punct_post_process=False)
 
+    Other languages are selected with lang, e.g. Turkish:
+    >>> normalizer_tr = Normalizer(input_case='cased', lang='tr', cache_dir=CACHE_DIR)
+    >>> normalizer_tr.normalize("Fiyat 100 TL oldu.")
+    'Fiyat yüz lira oldu .'
+
 """
 
 
@@ -195,6 +200,9 @@ class Normalizer:
         elif lang == 'ko':
             from nemo_text_processing.text_normalization.ko.taggers.tokenize_and_classify import ClassifyFst
             from nemo_text_processing.text_normalization.ko.verbalizers.verbalize_final import VerbalizeFinalFst
+        elif lang == 'tr':
+            from nemo_text_processing.text_normalization.tr.taggers.tokenize_and_classify import ClassifyFst
+            from nemo_text_processing.text_normalization.tr.verbalizers.verbalize_final import VerbalizeFinalFst
         else:
             raise NotImplementedError(f"Language {lang} has not been supported yet.")
 
@@ -745,7 +753,7 @@ def parse_args():
     parser.add_argument(
         "--language",
         help="language",
-        choices=["en", "de", "es", "fr", "hu", "sv", "zh", "ar", "it", "hy", "ja", "hi", "ko", "vi", "pt"],
+        choices=["en", "de", "es", "fr", "hu", "sv", "zh", "ar", "it", "hy", "ja", "hi", "ko", "vi", "pt", "tr"],
         default="en",
         type=str,
     )
