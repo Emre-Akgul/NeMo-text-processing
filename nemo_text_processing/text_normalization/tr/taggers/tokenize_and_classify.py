@@ -19,6 +19,9 @@ from pynini.lib import pynutil
 
 from nemo_text_processing.text_normalization.tr.graph_utils import (
     NEMO_CHAR,
+    NEMO_DIGIT,
+    NEMO_NOT_SPACE,
+    NEMO_SIGMA,
     NEMO_WHITE_SPACE,
     TR_LOWER,
     GraphFst,
@@ -36,12 +39,13 @@ from nemo_text_processing.text_normalization.tr.taggers.measure import MeasureFs
 from nemo_text_processing.text_normalization.tr.taggers.money import MoneyFst
 from nemo_text_processing.text_normalization.tr.taggers.ordinal import OrdinalFst
 from nemo_text_processing.text_normalization.tr.taggers.percentage import PercentageFst
-from nemo_text_processing.text_normalization.tr.taggers.punctuation import PunctuationFst
+from nemo_text_processing.text_normalization.tr.taggers.punctuation import PUNCTUATION_MARKS, PunctuationFst
+from nemo_text_processing.text_normalization.tr.taggers.range import RangeFst
 from nemo_text_processing.text_normalization.tr.taggers.suffix import SuffixFst
 from nemo_text_processing.text_normalization.tr.taggers.telephone import TelephoneFst
 from nemo_text_processing.text_normalization.tr.taggers.time import TimeFst
 from nemo_text_processing.text_normalization.tr.taggers.whitelist import WhiteListFst
-from nemo_text_processing.text_normalization.tr.taggers.word import WordFst
+from nemo_text_processing.text_normalization.tr.taggers.word import WORD_INTERNAL, WordFst
 from nemo_text_processing.text_normalization.tr.utils import get_abs_path
 from nemo_text_processing.utils.logging import logger
 
@@ -56,7 +60,9 @@ from nemo_text_processing.utils.logging import logger
 #   the suffixed forms, which also outrank ElectronicFst on the forms both accept
 #   ("Alm.dan", "T.C.de", "No.lu" are suffixed abbreviations, not bare host names).
 # - Classes whose inputs contain several parts are next; single numbers last. No two
-#   of these accept the same input, so their order only matters against splits.
+#   of these accept the same input, so their order only matters against splits. The
+#   exception is a range, two numbers joined by a dash, which comes after the classes
+#   whose own syntax includes a dash: a date or a telephone number keeps its reading.
 # - Upper case abbreviations are acronyms when there is evidence for it: an entry of
 #   the acronym table or of data/abbreviation/known_initialisms.tsv.
 #   Any other string of capitals is weighted above an ordinary word, so "EV", "OKUL",
@@ -75,6 +81,13 @@ from nemo_text_processing.utils.logging import logger
 #   than the 100 or 200 of other languages, because weights are 32 bit floats: a
 #   sentence's cost grows with its words, and the tie breaker above must stay above
 #   the rounding error of that sum, which it does up to about 270 words.
+# - A word that mixes digits with letters or symbols ("COVID-19", "4x4", "11n'nin")
+#   is not a word token. Where no semantic class reads such a run, it is kept
+#   verbatim together with everything it is joined to by punctuation, so a chunk is
+#   either read in full or left as written: "802.11n'nin" is not "802" read as a
+#   number and ".11n'nin" kept, and "600Mbit/s" is not split at the slash. The
+#   verbatim token costs more than any realistic run of semantic tokens joined by
+#   punctuation, so it never replaces a reading of the whole chunk.
 _WEIGHTS = {
     "whitelist": 1.01,
     "suffix": 1.02,
@@ -85,6 +98,7 @@ _WEIGHTS = {
     "date": 1.05,
     "time": 1.05,
     "abbreviation": 1.08,
+    "range": 1.09,
     "electronic": 1.1,
     "ordinal": 1.1,
     "decimal": 1.1,
@@ -94,6 +108,7 @@ _WEIGHTS = {
     "punctuation_mark": 0.1,
     "joined_token_character": 0.0001,
     "word": 3,
+    "verbatim": 10,
     "unattested_abbreviation": 3.01,
     "unattested_suffix": 3.01,
 }
@@ -200,6 +215,16 @@ class ClassifyFst(GraphFst):
             whitelist=self.whitelist,
             deterministic=deterministic,
         )
+        self.range = RangeFst(
+            cardinal=self.cardinal,
+            ordinal=self.ordinal,
+            time=self.time,
+            percentage=self.percentage,
+            money=self.money,
+            measure=self.measure,
+            suffix=self.suffix,
+            deterministic=deterministic,
+        )
         self.word = WordFst(deterministic=deterministic)
         self.punctuation = PunctuationFst(deterministic=deterministic)
 
@@ -237,6 +262,7 @@ class ClassifyFst(GraphFst):
                 ("date", self.date.fst),
                 ("time", self.time.fst),
                 ("abbreviation", abbreviation_token(pynini.compose(attested, self.abbreviation.graph))),
+                ("range", self.range.fst),
                 ("electronic", self.electronic.fst),
                 ("ordinal", self.ordinal.fst),
                 ("decimal", self.decimal.fst),
@@ -249,7 +275,36 @@ class ClassifyFst(GraphFst):
         )
         classify = pynini.union(*[pynutil.add_weight(fst, _WEIGHTS[name]) for name, fst in self.token_graphs.items()])
 
-        token = pynutil.insert("tokens { ") + classify + pynutil.insert(" }")
+        # A run of word characters that mixes digits with anything else: "COVID-19",
+        # "4x4", "11n'nin". Where a chunk contains one, it is read only by semantic
+        # classes, and what they do not read is kept verbatim: a verbatim token spans
+        # word characters and the punctuation between them, so a chunk is either read
+        # in full or left as written. Quotes and backslashes delimit token fields, so a
+        # verbatim token never contains one.
+        punctuation_mark = pynini.union(*[pynini.escape(mark) for mark in PUNCTUATION_MARKS])
+        word_char = pynini.difference(NEMO_NOT_SPACE, punctuation_mark)
+        in_word = pynini.union(word_char, *[pynini.escape(mark) for mark in WORD_INTERNAL])
+        non_digit = pynini.difference(word_char, NEMO_DIGIT)
+        mixed_run = pynini.union(
+            non_digit + pynini.closure(in_word) + NEMO_DIGIT, NEMO_DIGIT + pynini.closure(in_word) + non_digit
+        )
+        mixed = (NEMO_SIGMA + mixed_run + NEMO_SIGMA).optimize()
+        field_delimiter = pynini.union(*[pynini.escape(mark) for mark in ["\"", "\\"]])
+        undelimited = pynini.closure(pynini.difference(NEMO_CHAR, field_delimiter)).optimize()
+        verbatim = pynini.intersect(
+            pynini.union(
+                word_char, word_char + pynini.closure(pynini.difference(NEMO_NOT_SPACE, field_delimiter)) + word_char
+            ),
+            mixed,
+        )
+        semantic = [
+            name for name, weight in _WEIGHTS.items() if name in self.token_graphs and weight < _WEIGHTS["word"]
+        ]
+        classify_mixed = pynini.union(
+            *[pynutil.add_weight(self.token_graphs[name], _WEIGHTS[name]) for name in semantic],
+            pynutil.add_weight(pynutil.insert("name: \"") + verbatim + pynutil.insert("\""), _WEIGHTS["verbatim"]),
+        )
+
         per_mark = pynini.closure(pynutil.add_weight(NEMO_CHAR, _WEIGHTS["punctuation_mark"]))
         weighted_punctuation = pynini.compose(per_mark, self.punctuation.fst)
         punct = pynutil.insert("tokens { ") + pynutil.add_weight(weighted_punctuation, _WEIGHTS["punctuation"])
@@ -261,13 +316,28 @@ class ClassifyFst(GraphFst):
         # tokens never touch without punctuation between them, so a word is never
         # split, and whitespace appears only between chunks, so tokenizations can only
         # differ within a chunk. Every character is a word character or punctuation,
-        # so every sentence has a tokenization.
+        # so every sentence has a tokenization: a stretch with a mixed run has the
+        # verbatim token, and quotes and backslashes are always punctuation.
         whitespace = pynini.compose(pynini.closure(NEMO_WHITE_SPACE, 1), delete_extra_space)
         join = pynutil.insert(" ")
         punct_run = punct + pynini.closure(join + punct)
         per_character = pynini.closure(pynutil.add_weight(NEMO_CHAR, _WEIGHTS["joined_token_character"]))
-        joined_token = pynini.compose(per_character, token)
-        tokens = token + pynini.closure(join + punct_run + join + joined_token)
+
+        def chain(classes: "pynini.FstLike") -> "pynini.FstLike":
+            """Tokens of the given classes joined by punctuation."""
+            token = pynutil.insert("tokens { ") + classes + pynutil.insert(" }")
+            return token + pynini.closure(join + punct_run + join + pynini.compose(per_character, token))
+
+        # The tokens between the punctuation at the ends of a chunk, in stretches
+        # separated by punctuation with a quote or a backslash. A stretch with a mixed
+        # run takes the restricted classes, any other the full set.
+        stretch = pynini.union(
+            pynini.compose(pynini.difference(undelimited, mixed), chain(classify)),
+            pynini.compose(pynini.intersect(undelimited, mixed), chain(classify_mixed)),
+        )
+        delimiting_run = pynini.compose(NEMO_SIGMA + field_delimiter + NEMO_SIGMA, punct_run)
+        joined_stretch = pynini.compose(per_character, stretch)
+        tokens = stretch + pynini.closure(join + delimiting_run + join + joined_stretch)
         chunk = pynini.union(
             pynini.closure(punct_run + join, 0, 1) + tokens + pynini.closure(join + punct_run, 0, 1),
             punct_run,

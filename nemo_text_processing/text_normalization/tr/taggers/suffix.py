@@ -28,6 +28,7 @@ from nemo_text_processing.text_normalization.tr.graph_utils import (
 )
 from nemo_text_processing.text_normalization.tr.morphology import (
     CASE_SUFFIXES,
+    DERIVATIONAL_SUFFIXES,
     HARMONY_EXCEPTIONS,
     NUMERAL_STEM_ALTERNATION,
     ORDINAL,
@@ -55,6 +56,10 @@ class SuffixFst(GraphFst):
         "5 kg'dan" -> suffix { value: "beş kilogramdan" }
         "TDK'den" -> suffix { value: "te de keden" }
         "PKK'ya" -> suffix { value: "pe ka kaya" }
+        "2007'deki" -> suffix { value: "iki bin yedideki" }
+        "2000'li" -> suffix { value: "iki binli" }
+        "5 kg'lık" -> suffix { value: "beş kilogramlık" }
+        "1850'lerde" -> suffix { value: "bin sekiz yüz ellilerde" }
 
     TDK separates a suffix from a number, a lower case unit abbreviation or an upper
     case abbreviation with an apostrophe and spells it after the pronunciation: of the
@@ -62,12 +67,21 @@ class SuffixFst(GraphFst):
     the word an acronym is read as ("NATO'dan"). The written suffix is therefore
     checked, not just removed: "2026'da" is accepted and "2026'de" is not.
 
-    One suffix at a time is accepted: locative, ablative, dative, accusative,
-    genitive, instrumental, plural and third person possessive after every class, and
-    the ordinal ("8'inci", "2'nci") after a cardinal. The morphology is in
+    The first suffix after the apostrophe is checked: locative, ablative, dative,
+    accusative, genitive, instrumental, plural, third person possessive and the
+    derivational -lI and -lIk ("2000'li", "7,65'lik") after every class, and the
+    ordinal ("8'inci", "2'nci") after a cardinal. The morphology is in
     tr.morphology; this grammar only puts each class's spoken reading in front of it:
 
         written base -> spoken base, then apostrophe and suffix -> inflected reading
+
+    Suffixes may be stacked after the first one: "2007'deki", "1850'lerde",
+    "34'ünün", "%50'sini", "TDK'dekiler". Only the first suffix depends on the
+    reading of the base; each later one follows the suffix before it, which is
+    written as it is spoken, so the letters after the first suffix are read as
+    written and not limited to the suffixes above. They are checked only for vowel
+    harmony, the whole written suffix with them ("4'üncu" is not "4'üncü"), except
+    for the suffixes that do not harmonize, -ki, -ken and -yor ("2016'daki").
 
     For a number, the suffix is chosen by the spoken reading and inflects it, and the
     one lexical stem alternation of the numerals applies before a vowel initial suffix
@@ -131,8 +145,11 @@ class SuffixFst(GraphFst):
           reading of their spoken expansions;
         - fractions, whose written suffix TDK ties to a "bölü" reading that
           FractionFst does not use, telephone numbers, URL paths, currency symbols,
-          decimal quantities ("1,5 milyon'da"), derived forms ("7,65'lik"), more than
-          one suffix ("1980'lerde"), and a sentence final full stop.
+          decimal quantities ("1,5 milyon'da"), other derivational suffixes
+          ("2'şer"), and a sentence final full stop;
+        - stacked suffixes where no apostrophe is written ("Alm.dakiler"): without
+          the apostrophe the end of the base is not marked, and these forms overlap
+          host names.
 
     Args:
         cardinal: CardinalFst
@@ -166,17 +183,24 @@ class SuffixFst(GraphFst):
         super().__init__(name="suffix", kind="classify", deterministic=deterministic)
 
         apostrophe = pynini.union(_APOSTROPHE, pynini.cross(_TYPOGRAPHIC_APOSTROPHE, _APOSTROPHE))
-        written_suffix = apostrophe + pynini.closure(TR_LOWER, 1)
+        written_suffix = apostrophe + pynini.intersect(pynini.closure(TR_LOWER, 1), self._harmonic())
 
-        numeral = suffix_validator(CASE_SUFFIXES, NUMERAL_STEM_ALTERNATION, exceptions=HARMONY_EXCEPTIONS)
+        # Written after an apostrophe: the case suffixes and -lI, -lIk.
+        apostrophe_suffixes = CASE_SUFFIXES + DERIVATIONAL_SUFFIXES
+        numeral = suffix_validator(apostrophe_suffixes, NUMERAL_STEM_ALTERNATION, exceptions=HARMONY_EXCEPTIONS)
         numeral_with_ordinal = suffix_validator(
-            CASE_SUFFIXES + [ORDINAL], NUMERAL_STEM_ALTERNATION, exceptions=HARMONY_EXCEPTIONS
+            apostrophe_suffixes + [ORDINAL], NUMERAL_STEM_ALTERNATION, exceptions=HARMONY_EXCEPTIONS
         )
-        word = suffix_validator(CASE_SUFFIXES, exceptions=HARMONY_EXCEPTIONS)
+        word = suffix_validator(apostrophe_suffixes, exceptions=HARMONY_EXCEPTIONS)
+        # Joined without an apostrophe: the case suffixes only.
+        joined_word = suffix_validator(CASE_SUFFIXES, exceptions=HARMONY_EXCEPTIONS)
+
+        # The suffixes after the first, read as written.
+        stacked = pynini.closure(TR_LOWER)
 
         def suffixed(base: "pynini.FstLike", validator: "pynini.FstLike") -> "pynini.FstLike":
-            """written base + apostrophe + suffix -> spoken base + apostrophe + suffix -> inflected"""
-            return pynini.compose(base + written_suffix, validator).optimize()
+            """written base + apostrophe + suffixes -> spoken base + apostrophe + suffixes -> inflected"""
+            return pynini.compose(base + written_suffix, validator + stacked).optimize()
 
         # After a full stop or a superscript the suffix is written without an
         # apostrophe; one is inserted so that the same validator reads it.
@@ -190,9 +214,13 @@ class SuffixFst(GraphFst):
 
         # "12,5" -> "on iki virgül beş", joining the graphs DecimalFst joins; no
         # quantities, whose last word is not a number.
-        decimal_reading = cardinal.graph + pynini.cross(TR_DECIMAL_SEPARATOR, f" {TR_COMMA_WORD} ") + decimal.graph
+        self.decimal_reading = decimal_reading = (
+            cardinal.graph + pynini.cross(TR_DECIMAL_SEPARATOR, f" {TR_COMMA_WORD} ") + decimal.graph
+        )
         # Dates read without field permutation, i.e. day first and textual dates.
-        date_reading = pynini.compose(date.final_graph, DateVerbalizer().graph + delete_preserve_order)
+        self.date_reading = date_reading = pynini.compose(
+            date.final_graph, DateVerbalizer().graph + delete_preserve_order
+        )
         # Units that end in a letter: not "m²", "m2", "°" or "dk.".
         unit_reading = pynini.compose(ends_in_letter, measure.graph)
         # Acronyms, not "T.C.".
@@ -226,22 +254,49 @@ class SuffixFst(GraphFst):
             "date": suffixed(date_reading, numeral),
             "time": suffixed(time.graph, numeral),
             "percentage": suffixed(percentage.graph, numeral),
-            "money": self._money(money, abbreviation, written_suffix),
+            "money": self._money(money, abbreviation, written_suffix) + stacked,
             "measure": suffixed(unit_reading, word),
             "abbreviation": suffixed(acronym_reading, word),
             "electronic": suffixed(address_reading, word),
-            "dotted_whitelist": joined(dotted_whitelist, word),
+            "dotted_whitelist": joined(dotted_whitelist, joined_word),
             "lexical": pynini.string_file(get_abs_path("data/suffix/lexical_forms.tsv")).optimize(),
-            "dotted_acronym": joined(pynini.compose(ends_in_full_stop, abbreviation.graph), word),
-            "dotted_unit": joined(dotted_unit_reading, word),
-            "superscript_unit": joined(superscript_unit_reading, word),
-            "anchored_whitelist": self._anchored_whitelist(whitelist, abbreviation, written_suffix),
+            "dotted_acronym": joined(pynini.compose(ends_in_full_stop, abbreviation.graph), joined_word),
+            "dotted_unit": joined(dotted_unit_reading, joined_word),
+            "superscript_unit": joined(superscript_unit_reading, joined_word),
+            "anchored_whitelist": self._anchored_whitelist(whitelist, abbreviation, written_suffix) + stacked,
         }
 
         # "TDK'den" -> "te de keden"
         self.graph = pynini.union(*self.branches.values()).optimize()
 
         self.fst = self.add_tokens(pynutil.insert("value: \"") + self.graph + pynutil.insert("\"")).optimize()
+
+    @staticmethod
+    def _harmonic() -> "pynini.FstLike":
+        """
+        Lower case strings whose vowels harmonize from left to right: a low vowel
+        agrees with the vowel before it in backness, a high vowel also in rounding,
+        and "o" and "ö", which occur in no harmonizing suffix, do not follow a vowel.
+        The vowel of -ki, -ke(n) and -yo(r) may follow any vowel.
+        """
+        front, rounded = "eiöü", "oöuü"
+
+        def harmonizes(before: str, after: str) -> bool:
+            if after in "oö":
+                return False
+            same_backness = (before in front) == (after in front)
+            return same_backness and (after in "ae" or (before in rounded) == (after in rounded))
+
+        vowels = "aeıioöuü"
+        consonants = pynini.closure(pynini.difference(TR_LOWER, pynini.union(*vowels)))
+        disharmonic = pynini.union(
+            *[before + consonants + after for before in vowels for after in vowels if not harmonizes(before, after)]
+        )
+        invariant = pynini.union(*vowels) + consonants + pynini.union("ki", "ke", "yo")
+        violation = pynini.difference(disharmonic, invariant)
+        return pynini.difference(
+            pynini.closure(TR_LOWER), pynini.closure(TR_LOWER) + violation + pynini.closure(TR_LOWER)
+        ).optimize()
 
     @staticmethod
     def _anchored_whitelist(
@@ -258,7 +313,8 @@ class SuffixFst(GraphFst):
             spoken = pynini.compose(written, whitelist.graph)
             branches.append(
                 pynini.compose(
-                    spoken + written_suffix, inflect_by_anchor(anchor, CASE_SUFFIXES, exceptions=HARMONY_EXCEPTIONS)
+                    spoken + written_suffix,
+                    inflect_by_anchor(anchor, CASE_SUFFIXES + DERIVATIONAL_SUFFIXES, exceptions=HARMONY_EXCEPTIONS),
                 )
             )
         return pynini.union(*branches).optimize()
@@ -275,7 +331,8 @@ class SuffixFst(GraphFst):
             anchor = rewrite.top_rewrite(code, abbreviation.graph)
             branches.append(
                 pynini.compose(
-                    written + written_suffix, inflect_by_anchor(anchor, CASE_SUFFIXES, exceptions=HARMONY_EXCEPTIONS)
+                    written + written_suffix,
+                    inflect_by_anchor(anchor, CASE_SUFFIXES + DERIVATIONAL_SUFFIXES, exceptions=HARMONY_EXCEPTIONS),
                 )
             )
         return pynini.union(*branches).optimize()

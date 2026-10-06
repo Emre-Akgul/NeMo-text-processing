@@ -42,7 +42,7 @@ On top of these, the module provides:
     - a deliberately limited inventory of productive suffixes (``SuffixSpec``): the
       locative, ablative, dative, accusative, genitive, instrumental, plural, third
       person possessive and ordinal, with their buffer consonants (y, n, s) spelled
-      out in each suffix's templates;
+      out in each suffix's templates, and the derivational -lI and -lIk;
     - lexical stem alternation, applied only where a table lists it: the numerals'
       "dört" -> "dörd" before a vowel initial suffix, and no general softening;
     - harmony exceptions, words whose suffixes do not follow their last vowel;
@@ -51,8 +51,9 @@ On top of these, the module provides:
       spoken as another (``inflect_by_anchor``, "TL'ye" -> "yüz liraya").
 
 This is productive morphology for text normalization, not general purpose Turkish
-morphology: there is no analysis of arbitrary words, no suffix stacking, no
-derivational morphology and no compounding rules.
+morphology: there is no analysis of arbitrary words, no derivational morphology
+beyond -lI and -lIk and no compounding rules. Only the suffix attached to a stem is modelled; the suffixes
+stacked after it are spelled as they are spoken, and SuffixFst reads them as written.
 """
 
 import pynini
@@ -297,6 +298,14 @@ PLURAL_SUFFIX = PLURAL.attach()
 POSSESSIVE_3SG_SUFFIX = POSSESSIVE_3SG.attach()
 
 CASE_SUFFIXES = [LOCATIVE, ABLATIVE, DATIVE, ACCUSATIVE, GENITIVE, INSTRUMENTAL, PLURAL, POSSESSIVE_3SG]
+
+# The two derivational suffixes written after a number, unit or abbreviation, both
+# beginning with a consonant and so never alternating the stem:
+#   -lI     iki -> ikili, on -> onlu, dört -> dörtlü ("2000'li yıllar")
+#   -lIk    beş -> beşlik, yüz -> yüzlük, dört -> dörtlük ("5 kg'lık")
+WITH = SuffixSpec("with", HIGH_VOWEL_HARMONY, "l{vowel}", "l{vowel}", "l{vowel}")
+MEASURE_OF = SuffixSpec("measure_of", HIGH_VOWEL_HARMONY, "l{vowel}k", "l{vowel}k", "l{vowel}k")
+DERIVATIONAL_SUFFIXES = [WITH, MEASURE_OF]
 
 # The one lexical stem alternation of the numerals, dört -> dörd, before a suffix that
 # begins with a vowel ("dörde", "dördü", "dördüncü"). Turkish consonant softening is

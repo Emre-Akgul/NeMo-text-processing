@@ -19,7 +19,7 @@ from nemo_text_processing.text_normalization.tr.graph_utils import NEMO_NOT_SPAC
 from nemo_text_processing.text_normalization.tr.taggers.punctuation import PUNCTUATION_MARKS
 
 # Written inside a word, between two runs of word characters: "Yılmaz'a", "e-posta".
-_WORD_INTERNAL = ["'", "’", "-"]
+WORD_INTERNAL = ["'", "’", "-"]
 
 
 class WordFst(GraphFst):
@@ -44,7 +44,7 @@ class WordFst(GraphFst):
 
         punctuation = pynini.union(*[pynini.escape(mark) for mark in PUNCTUATION_MARKS])
         run = pynini.closure(pynini.difference(NEMO_NOT_SPACE, punctuation), 1)
-        internal = pynini.union(*[pynini.escape(mark) for mark in _WORD_INTERNAL])
+        internal = pynini.union(*[pynini.escape(mark) for mark in WORD_INTERNAL])
         self.graph = (run + pynini.closure(internal + run)).optimize()
 
         self.fst = (pynutil.insert("name: \"") + self.graph + pynutil.insert("\"")).optimize()

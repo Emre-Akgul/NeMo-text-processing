@@ -131,6 +131,20 @@ _SENTENCES = [
     ("1/2/3", ["fraction", "punct", "cardinal"]),
     ("1/2/3/4", ["fraction", "punct", "fraction"]),
     ("1, 2, 3", ["cardinal", "punct", "cardinal", "punct", "cardinal"]),
+    # stacked suffixes and ranges are one token; a dash in a date or a telephone
+    # number is the class's own
+    ("2007'deki krizde", ["suffix", "word"]),
+    ("Proje 2-5 gün sürdü.", ["word", "range", "word", "word", "punct"]),
+    ("1995-96'da", ["range"]),
+    ("2026-09-29", ["date"]),
+    ("294-6605", ["telephone"]),
+    # a run mixing digits with letters is read whole or kept as written, with the
+    # punctuation inside it
+    ("802.11n'nin hızı arttı.", ["word", "word", "word", "punct"]),
+    ("COVID-19 salgını", ["word", "word"]),
+    ("(COVID-19),", ["punct", "word", "punct"]),
+    ("HJR-3 ve 4x4", ["word", "word", "word"]),
+    ("600Mbit/s", ["word"]),
 ]
 
 # Punctuation written against a semantic token stays outside it.
@@ -273,7 +287,8 @@ class TestClassifier:
     @pytest.mark.unit
     def test_semantic_classes_share_no_input_but_the_known_ones(self):
         """Exact over whole tokens: besides the word fallback, the only shared inputs
-        are the suffixed abbreviations that are also host names."""
+        are the suffixed abbreviations that are also host names, and seven digit
+        telephone numbers that are also ranges."""
         graphs = dict(_CLASSIFIER.token_graphs, punctuation=_CLASSIFIER.punctuation.fst)
         fallbacks = {"word", "unattested_abbreviation", "unattested_suffix"}
         inputs = {name: pynini.project(graph, "input").optimize() for name, graph in graphs.items()}
@@ -281,6 +296,10 @@ class TestClassifier:
             shared = pynini.intersect(inputs[a], inputs[b]).optimize()
             if {a, b} == {"suffix", "electronic"}:
                 assert shared.num_states() > 0
+            elif {a, b} == {"range", "telephone"}:
+                # "294-6605" is a telephone number, which costs less
+                assert shared.num_states() > 0
+                assert _WEIGHTS["telephone"] < _WEIGHTS["range"]
             elif not ({a, b} & fallbacks):
                 assert shared.num_states() == 0, (a, b)
 
@@ -356,7 +375,9 @@ class TestClassifier:
         little per mark, less than a whole token."""
         punctuation = {"punctuation", "punctuation_mark", "joined_token_character"}
         semantic = [
-            w for name, w in _WEIGHTS.items() if name not in {"word"} | punctuation and "unattested" not in name
+            w
+            for name, w in _WEIGHTS.items()
+            if name not in {"word", "verbatim"} | punctuation and "unattested" not in name
         ]
         assert max(semantic) < 2 * min(semantic)
         assert _WEIGHTS["whitelist"] < _WEIGHTS["suffix"] < _WEIGHTS["electronic"]
@@ -367,6 +388,10 @@ class TestClassifier:
         # the tie breaker within a chunk stays below the cost of a punctuation mark over
         # a hundred characters of joined tokens
         assert 0 < 100 * _WEIGHTS["joined_token_character"] < _WEIGHTS["punctuation_mark"]
+        # a range yields to the classes whose syntax includes a dash
+        assert _WEIGHTS["date"] < _WEIGHTS["range"] and _WEIGHTS["telephone"] < _WEIGHTS["range"]
+        # a verbatim token costs more than three semantic tokens joined by punctuation
+        assert 3 * max(semantic) + 2 * (_WEIGHTS["punctuation"] + _WEIGHTS["punctuation_mark"]) < _WEIGHTS["verbatim"]
 
 
 class TestWordAndPunctuation:

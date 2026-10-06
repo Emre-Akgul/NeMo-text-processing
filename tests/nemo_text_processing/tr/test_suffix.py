@@ -78,8 +78,12 @@ _NOT_JOINED += [
 # ("MS'de"), but their expansions are adverbial phrases with no attested suffixed
 # reading.
 _DEFERRED_WHITELIST_SUFFIXES = ["MÖ'de", "MÖ'den", "MS'de", "MS'den"]
-_OTHER_DEFERRED = ["1980'lerde", "TDK'dekiler", "3/4'ü", "4/8'i", "100€'ya", "0532 123 45 67'yi"]
-_OTHER_DEFERRED += ["https://example.com/foo'da", "1,5 milyon'da", "2'şer", "7,65'lik", "2026-09-29'da"]
+_OTHER_DEFERRED = ["3/4'ü", "4/8'i", "100€'ya", "0532 123 45 67'yi"]
+_OTHER_DEFERRED += ["https://example.com/foo'da", "1,5 milyon'da", "2'şer", "2026-09-29'da"]
+# Stacked suffixes that break vowel harmony, or follow a wrong first suffix; and
+# stacking where no apostrophe is written.
+_DISHARMONIC_STACKS = ["4'üncu", "2016'dalerde", "1850'lerda", "%50'sıni", "2007'dekı", "TDK'dekilar"]
+_DISHARMONIC_STACKS += ["2016'deki", "1850'larda", "5'lığı", "Alm.daki", "T.C.deki", "5 dk.daki"]
 _MALFORMED = ["tdk'den", "Tdk'den", "-5'ten", "TDK'den.", "'da", "2026'"]
 
 # An independent statement of the rules.
@@ -448,7 +452,7 @@ class TestSuffix:
         for wrong in ["numaralu", "numarasuz", "ve benzeriler"]:
             assert wrong not in {rewrite.top_rewrite(w, self.tagger.graph) for w in _LEXICAL_FORMS}
 
-    @parameterized.expand([(w,) for w in _OTHER_DEFERRED + _MALFORMED])
+    @parameterized.expand([(w,) for w in _OTHER_DEFERRED + _MALFORMED + _DISHARMONIC_STACKS])
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_other_deferred_and_malformed_forms_are_rejected(self, written):

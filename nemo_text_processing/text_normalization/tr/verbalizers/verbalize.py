@@ -23,6 +23,7 @@ from nemo_text_processing.text_normalization.tr.verbalizers.measure import Measu
 from nemo_text_processing.text_normalization.tr.verbalizers.money import MoneyFst
 from nemo_text_processing.text_normalization.tr.verbalizers.ordinal import OrdinalFst
 from nemo_text_processing.text_normalization.tr.verbalizers.percentage import PercentageFst
+from nemo_text_processing.text_normalization.tr.verbalizers.range import RangeFst
 from nemo_text_processing.text_normalization.tr.verbalizers.suffix import SuffixFst
 from nemo_text_processing.text_normalization.tr.verbalizers.telephone import TelephoneFst
 from nemo_text_processing.text_normalization.tr.verbalizers.time import TimeFst
@@ -58,6 +59,7 @@ class VerbalizeFst(GraphFst):
         telephone = TelephoneFst(deterministic=deterministic)
         electronic = ElectronicFst(deterministic=deterministic)
         suffix = SuffixFst(deterministic=deterministic)
+        range_ = RangeFst(deterministic=deterministic)
         abbreviation = AbbreviationFst(deterministic=deterministic)
 
         graph = (
@@ -73,6 +75,7 @@ class VerbalizeFst(GraphFst):
             | telephone.fst
             | electronic.fst
             | suffix.fst
+            | range_.fst
             | abbreviation.fst
         )
         self.fst = graph.optimize()
