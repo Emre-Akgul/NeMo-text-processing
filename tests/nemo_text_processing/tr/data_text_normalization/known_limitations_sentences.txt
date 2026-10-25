@@ -1,0 +1,10 @@
+address abbreviation~Atatürk Cad. No. 15 adresinde.~Atatürk Caddesi numara on beş adresinde .
+missing unit~Telefonun 8 GB belleği var.~Telefonun sekiz gigabayt belleği var .
+missing unit~Dosya boyutu 250 MB.~Dosya boyutu iki yüz elli megabayt .
+sentence-final abbreviation full stop~Otoyolda hız sınırı 120 km/sa.~Otoyolda hız sınırı yüz yirmi kilometre bölü saat .
+spaced currency sign~Hisse başına 1,25 € temettü dağıtılacak.~Hisse başına bir avro yirmi beş sent temettü dağıtılacak .
+spaced currency sign~Fiyat 12 $ oldu.~Fiyat on iki dolar oldu .
+suffix after a fraction~Pastanın 3/4'ünü yedik.~Pastanın dörtte üçünü yedik .
+suffix after a prefixed currency sign~Bilet fiyatı $20'dan $25'a yükseldi.~Bilet fiyatı yirmi dolardan yirmi beş dolara yükseldi .
+two-part date~Toplantı 29.09'da yapılacak.~Toplantı yirmi dokuz eylülde yapılacak .
+unattested initialism~TCK'nin 53. maddesi uygulandı.~te ce kenin elli üçüncü maddesi uygulandı .

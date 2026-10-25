@@ -63,7 +63,7 @@ def _golden_cases():
     cases = []
     for path in sorted(glob.glob(os.path.join(_DATA, "test_cases_*.txt"))):
         name = os.path.basename(path)
-        if name == "test_cases_sentences.txt":
+        if name.startswith("test_cases_sentences"):
             continue
         for written, spoken in parse_test_case_file(f"tr/data_text_normalization/{name}"):
             if name == "test_cases_abbreviation.txt" and written in _UNATTESTED_ABBREVIATIONS:
