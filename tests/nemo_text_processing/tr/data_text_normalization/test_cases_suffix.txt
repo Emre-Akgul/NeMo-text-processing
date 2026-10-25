@@ -120,3 +120,17 @@ TDK'dekiler~te de kedekiler
 %50'lik~yüzde ellilik
 5 kg'lık~beş kilogramlık
 100 TL'lik~yüz liralık
+3/4'ü~üç bölü dördü
+4/8'i~dört bölü sekizi
+1/2'si~bir bölü ikisi
+-3/4'ü~eksi üç bölü dördü
+3/4'ünü~üç bölü dördünü
+100€'ya~yüz avroya
+$20'dan~yirmi dolardan
+100 €'ya~yüz avroya
+12 $'a~on iki dolara
+29.09'da~yirmi dokuz eylülde
+29.09'de~yirmi dokuz eylülde
+31.12'de~otuz bir aralıkta
+TCK'nin~te ce kenin
+8 KB'lık~sekiz kilobaytlık

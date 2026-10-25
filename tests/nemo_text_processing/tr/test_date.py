@@ -211,7 +211,9 @@ _UNSUPPORTED_TEXTUAL = [
     ("29 Ey. 2026",),
 ]
 
-_NOT_A_DATE_FRACTIONS = [("1/2",), ("3/4",), ("12/25",), ("29/09",), ("3-4",), ("29.09",)]
+_NOT_A_DATE_FRACTIONS = [("1/2",), ("3/4",), ("12/25",), ("29/09",), ("3-4",)]
+# A day and month joined by a full stop are a date only when they cannot be a time.
+_NOT_A_DATE_FRACTIONS += [("15.03",), ("23.05",), ("01.12",), ("29.13",), ("32.01",), ("29-09",)]
 
 _DATES_THAT_LOOK_LIKE_FRACTIONS = [
     ("1/2/2026", "bir şubat iki bin yirmi altı"),

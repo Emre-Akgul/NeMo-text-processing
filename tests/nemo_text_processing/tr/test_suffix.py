@@ -78,7 +78,7 @@ _NOT_JOINED += [
 # ("MS'de"), but their expansions are adverbial phrases with no attested suffixed
 # reading.
 _DEFERRED_WHITELIST_SUFFIXES = ["MÖ'de", "MÖ'den", "MS'de", "MS'den"]
-_OTHER_DEFERRED = ["3/4'ü", "4/8'i", "100€'ya", "0532 123 45 67'yi"]
+_OTHER_DEFERRED = ["3/4'i", "100€'ye", "$20'den", "0532 123 45 67'yi"]
 _OTHER_DEFERRED += ["https://example.com/foo'da", "1,5 milyon'da", "2'şer", "2026-09-29'da"]
 # Stacked suffixes that break vowel harmony, or follow a wrong first suffix; and
 # stacking where no apostrophe is written.
@@ -544,5 +544,7 @@ class TestSuffix:
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_graph_has_no_state_explosion(self):
-        assert self.tagger_fst.num_states() < 20000, self.tagger_fst.num_states()
+        # About 20000 states are the suffixed money forms with a symbol, which can be
+        # written before the amount, after it or after it following a space.
+        assert self.tagger_fst.num_states() < 35000, self.tagger_fst.num_states()
         assert self.verbalizer_fst.num_states() < 100, self.verbalizer_fst.num_states()

@@ -58,8 +58,8 @@ _ACRONYMS += ["CPU", "GPU", "AI", "T.C.", "T.", "A.B.C."]
 # Abbreviations owned by other grammars, or left out because their reading is not
 # fixed.
 _NOT_WHITELISTED = ["sn.", "sn", "sa.", "dk.", "kg", "km", "m", "L", "mL", "Hz", "kW", "TL", "TRY", "USD", "EUR"]
-_NOT_WHITELISTED += ["Oca.", "Eyl.", "www", "http", "https", "com", "vd.", "Mah.", "Cad.", "Sok.", "Hz.", "Müh."]
-_NOT_WHITELISTED += ["Bşk.", "Apt.", "Bul.", "Prof. Dr.", "A.Ş.", "M.Ö.", "M.S."]
+_NOT_WHITELISTED += ["Oca.", "Eyl.", "www", "http", "https", "com", "vd.", "Hz.", "Müh."]
+_NOT_WHITELISTED += ["Bşk.", "Apt.", "Prof. Dr.", "A.Ş.", "M.Ö.", "M.S."]
 
 _OTHER_CLASSES = ["29.09.2026", "14.30", "3/4", "%25", "100€", "5 kg", "5 sn.", "05321234567"]
 _OTHER_CLASSES += ["example.com", "emre@example.com", "123", "12,5", "14."]
@@ -241,7 +241,8 @@ class TestWhiteList:
         assert rewrite.rewrites("Dr.", replaced.graph) == ["doktor"]
         assert not self._accepts(replaced.fst, "Prof.")
         added = WhiteListFst(deterministic=False, input_file=str(custom))
-        assert rewrite.rewrites("Mah.", added.graph) == ["mahallesi"]
+        # Added to the defaults, which read "Mah." in the possessive form.
+        assert sorted(rewrite.rewrites("Mah.", added.graph)) == ["Mahallesi", "mahallesi"]
         assert rewrite.rewrites("Prof.", added.graph) == ["profesör"]
 
     @pytest.mark.run_only_on('CPU')

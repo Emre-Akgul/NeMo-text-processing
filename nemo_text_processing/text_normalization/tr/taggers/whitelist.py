@@ -44,9 +44,11 @@ class WhiteListFst(GraphFst):
     "sn." is the unit "saniye" of MeasureFst) and a final full stop is part of the
     abbreviation ("Dr" is not accepted). Abbreviations read as letters or as a word
     ("TDK", "NATO", "T.C.") are left to a separate acronym grammar, and those with
-    more than one reading ("vd.", "Mah.", "Hz.") or whose reading depends on the
-    address around them ("Cad.", "Sok.") are left out. Unit, currency, month and
-    protocol abbreviations belong to their own grammars.
+    more than one reading ("vd.", "Hz.") are left out. The address abbreviations
+    ("Cad.", "Sok.", "Mah.", "Bul.") are read in the possessive form they take after
+    a street or district name, "Atatürk Cad." -> "Atatürk Caddesi", the way they are
+    written in addresses. Unit, currency, month and protocol abbreviations belong to
+    their own grammars.
 
     A suffix on an expanded abbreviation follows the full form and needs no
     apostrophe after a full stop ("Alm.dan", "vb.leri", "No.lu"); these forms are

@@ -44,7 +44,8 @@ def _bare(key: str, graph: "pynini.FstLike") -> "pynini.FstLike":
 def _attach_currency(amount: "pynini.FstLike", symbols: list, codes: list) -> "pynini.FstLike":
     """
     Attaches a currency's written forms to its amount graph: a symbol directly before
-    or after the amount, or a code after it following one space.
+    the amount, a symbol after it, directly or following one space, or a code after it
+    following one space.
 
     Args:
         amount: amount graph of the currency
@@ -55,14 +56,15 @@ def _attach_currency(amount: "pynini.FstLike", symbols: list, codes: list) -> "p
     """
     symbol = pynutil.delete(pynini.union(*symbols))
     code = pynutil.delete(NEMO_SPACE + pynini.union(*codes))
-    return pynini.union(symbol + amount, amount + pynini.union(symbol, code))
+    spaced_symbol = pynutil.delete(NEMO_SPACE) + symbol
+    return pynini.union(symbol + amount, amount + pynini.union(symbol, spaced_symbol, code))
 
 
 class MoneyFst(GraphFst):
     """
     Finite state transducer for classifying Turkish money, e.g.
         "100 TL" -> money { integer_part: "yüz" currency_maj: "lira" preserve_order: true }
-        "€100", "100€", "100 EUR" -> money { integer_part: "yüz" currency_maj: "avro" preserve_order: true }
+        "€100", "100€", "100 €", "100 EUR" -> money { integer_part: "yüz" currency_maj: "avro" preserve_order: true }
         "12,50₺" -> money { integer_part: "on iki" currency_maj: "lira" fractional_part: "elli"
             currency_min: "kuruş" preserve_order: true }
         "0,05 TL" -> money { fractional_part: "beş" currency_min: "kuruş" preserve_order: true }
@@ -74,8 +76,9 @@ class MoneyFst(GraphFst):
     Supported currencies are in data/money, keyed by ISO code: Turkish lira (₺, TL,
     TRY), US dollar ($, USD), euro (€, EUR) and pound sterling (£, GBP), read "lira",
     "dolar", "avro" and "sterlin", with minor units "kuruş", "sent", "sent" and "peni".
-    A symbol attaches directly before or after the amount ("€100", "100€"); a code
-    follows the amount after one space ("100 EUR"). All three give the same token.
+    A symbol attaches directly before the amount ("€100") or follows it, directly or
+    after one space ("100€", "100 €"); a code follows the amount after one space
+    ("100 EUR"). All of these give the same token.
 
     The fields follow the en and hu money schema and are always emitted in Turkish
     speaking order, number then currency, with ``preserve_order``, whichever side the
@@ -100,15 +103,14 @@ class MoneyFst(GraphFst):
     A leading minus is read "eksi", before a prefix symbol or before the amount: "-€5",
     "-5€", "-5 EUR". Turkish does not pluralise the currency after a number.
 
-    Not accepted: a space between a symbol and the amount ("€ 100", "100 €"), codes
+    Not accepted: a space after a symbol before the amount ("€ 100"), codes
     before the amount or attached to it ("EUR 100", "100EUR"), lower case codes,
     currency names ("100 lira"), other currencies, ranges, per unit forms and
     suffixed forms such as "100 TL'ye".
 
     For the classifier: "€100", "100€" and "100 EUR" are money, while "12,50" is a
     decimal, "%12,50" a percentage, "14.30" a time, "29.09.2026" a date and "3/4" a
-    fraction; none of those is accepted here. "100 €" with a space is common in
-    running text and is left for corpus driven evaluation.
+    fraction; none of those is accepted here.
 
     Args:
         cardinal: CardinalFst, supplies integer readings

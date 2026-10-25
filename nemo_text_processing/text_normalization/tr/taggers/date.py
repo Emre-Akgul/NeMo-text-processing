@@ -78,8 +78,11 @@ class DateFst(GraphFst):
 
     Numeric dates are day/month/year, the Turkish order, with ".", "/" or "-" used
     consistently. There is no month/day/year reading, so 03/04/2026 is 3 April. All
-    three parts are required: "3/4" belongs to FractionFst, and a two part "29.09"
-    would collide with ordinals and decimals.
+    three parts are required, with one exception: "29.09", a day and a month joined by
+    a full stop, is a date when it cannot be a clock time, i.e. when the day is 24 to
+    31, "29.09'da" -> "yirmi dokuz eylülde". Any other day and month, "15.03", is also
+    a valid time, which TimeFst reads ("on beş sıfır üç"). "3/4" belongs to
+    FractionFst and "3-4" to RangeFst, so no other separator forms a two part date.
 
     Year first dates, such as ISO "2026-09-29", are accepted with a four digit year in
     front, which cannot be a day. Their fields are emitted in the written order, year
@@ -157,6 +160,10 @@ class DateFst(GraphFst):
             ]
         )
 
+        # 29.09, only for a day that cannot be an hour: "15.03" is a time.
+        late_day = pynutil.insert("day: \"") + pynini.compose(_numeric_range(24, 31), cardinal.graph)
+        numeric_dm = late_day + pynutil.insert("\"") + pynini.cross(".", NEMO_SPACE) + numeric_month
+
         # 29 Eylül 2026, 29 Eylül, Eylül 2026
         space = pynini.accep(NEMO_SPACE)
         textual = pynini.union(
@@ -174,7 +181,7 @@ class DateFst(GraphFst):
         )
 
         self.final_graph = pynini.union(
-            (numeric_dmy | textual) + pynutil.insert(" preserve_order: true"),
+            (numeric_dmy | numeric_dm | textual) + pynutil.insert(" preserve_order: true"),
             numeric_ymd,
         ).optimize()
 

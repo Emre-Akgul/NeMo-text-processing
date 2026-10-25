@@ -120,7 +120,9 @@ _SENTENCES = [
     ("Dr. geldi.", ["whitelist", "word", "punct"]),
     ("Kat 3/14", ["word", "fraction"]),
     # no class accepts these whole: tokens joined by the punctuation between them
-    ("29.09", ["cardinal", "punct", "word"]),
+    ("29.09", ["date"]),
+    ("15.03", ["time"]),
+    ("29.13", ["cardinal", "punct", "cardinal"]),
     ("5.5", ["cardinal", "punct", "cardinal"]),
     ("abc.def,ghi", ["electronic", "punct", "word"]),
     # a chain of numbers joined by punctuation: an earlier token takes as much as it can
@@ -329,17 +331,18 @@ class TestClassifier:
     def test_tie_breaker_survives_long_sentences(self):
         """The per character tie breaker is small; it still decides after a long
         sentence has accumulated a large cost. With a final full stop, "3." and "5."
-        are ordinals, the known sentence final reading."""
+        are ordinals, the known sentence final reading, and the full stop the ordinal
+        absorbs is kept as punctuation after it."""
         cases = [
             ("1,2,3", ["decimal", "punct", "cardinal"]),
-            ("1,2,3.", ["decimal", "punct", "ordinal"]),
+            ("1,2,3.", ["decimal", "punct", "ordinal", "punct"]),
             ("3/4/5", ["fraction", "punct", "cardinal"]),
-            ("3/4/5.", ["fraction", "punct", "ordinal"]),
+            ("3/4/5.", ["fraction", "punct", "ordinal", "punct"]),
         ]
         for tail, expected in cases:
             for words in [80]:
                 sentence = "bu" + " ve" * words + " " + tail
-                assert _classes(_best(sentence))[-3:] == expected, (tail, words)
+                assert _classes(_best(sentence))[-len(expected) :] == expected, (tail, words)
 
     @parameterized.expand(_KNOWN_TIES)
     @pytest.mark.run_only_on('CPU')

@@ -30,3 +30,7 @@ TÜBA~tüba
 PKK~pe ka ka
 BMW~be me ve
 T.C.~te ce
+TCK~te ce ke
+TMK~te me ke
+HMK~he me ke
+CMK~ce me ke

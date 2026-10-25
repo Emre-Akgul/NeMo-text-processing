@@ -113,6 +113,11 @@ _WEIGHTS = {
     "unattested_suffix": 3.01,
 }
 
+# Follows the output of a token whose written form ends in a full stop, before the
+# token's closing brace; see _keep_final_full_stop. A private use character, which
+# text copied from the input can only contain inside the quotes of a field.
+_FULL_STOP_MARK = "\ue000"
+
 
 class ClassifyFst(GraphFst):
     """
@@ -133,7 +138,9 @@ class ClassifyFst(GraphFst):
     policy; TDK establishes the abbreviations and their spelling, and its suffixed
     examples ("BDT'ye", "TDK'den", "THY'de", "TRT'den", "TL'nin") show suffixes chosen
     by the last letter's name. It also lists "HTTP" and "HTTPS", which ElectronicFst
-    already reads letter by letter. The list is deliberately short; other
+    already reads letter by letter, and the legal code abbreviations "TCK", "TMK",
+    "HMK" and "CMK", added by decision rather than from a TDK example. The list is
+    deliberately short; other
     initialisms ("PTT", "DSİ") stay words until they are added. AbbreviationFst and
     SuffixFst are unchanged; the classifier splits their languages and weights the
     parts. Lower cased input keeps the whitelist working, but cannot keep the acronym
@@ -273,7 +280,9 @@ class ClassifyFst(GraphFst):
                 ("unattested_suffix", suffix_token(unattested_suffixes)),
             ]
         )
-        classify = pynini.union(*[pynutil.add_weight(fst, _WEIGHTS[name]) for name, fst in self.token_graphs.items()])
+        classify = pynini.union(
+            *[pynutil.add_weight(_mark_full_stop(fst), _WEIGHTS[name]) for name, fst in self.token_graphs.items()]
+        )
 
         # A run of word characters that mixes digits with anything else: "COVID-19",
         # "4x4", "11n'nin". Where a chunk contains one, it is read only by semantic
@@ -301,7 +310,7 @@ class ClassifyFst(GraphFst):
             name for name, weight in _WEIGHTS.items() if name in self.token_graphs and weight < _WEIGHTS["word"]
         ]
         classify_mixed = pynini.union(
-            *[pynutil.add_weight(self.token_graphs[name], _WEIGHTS[name]) for name in semantic],
+            *[pynutil.add_weight(_mark_full_stop(self.token_graphs[name]), _WEIGHTS[name]) for name in semantic],
             pynutil.add_weight(pynutil.insert("name: \"") + verbatim + pynutil.insert("\""), _WEIGHTS["verbatim"]),
         )
 
@@ -345,4 +354,45 @@ class ClassifyFst(GraphFst):
         graph = delete_space + chunk + pynini.closure(whitespace + chunk) + delete_space
 
         self.classify = classify
-        self.fst = graph.optimize()
+        self.fst = pynini.compose(graph, _keep_final_full_stop()).optimize()
+
+
+def _mark_full_stop(token: "pynini.FstLike") -> "pynini.FstLike":
+    """
+    Appends _FULL_STOP_MARK to the output of a token whose written form ends in a full
+    stop: "km/sa.", "Dr.", "8.".
+
+    Args:
+        token: a token graph, without the "tokens" wrapper
+
+    Returns a pynini.FstLike
+    """
+    ends_in_full_stop = NEMO_SIGMA + "."
+    return pynini.union(
+        pynini.compose(pynini.difference(NEMO_SIGMA, ends_in_full_stop), token),
+        pynini.compose(ends_in_full_stop, token) + pynutil.insert(_FULL_STOP_MARK),
+    )
+
+
+def _keep_final_full_stop() -> "pynini.FstLike":
+    """
+    TDK writes one full stop for an abbreviation that ends a sentence, which then ends
+    both. The token reads the abbreviation; this keeps the sentence's full stop as a
+    punctuation token after it, when the token is the last one of a sentence with more
+    than one token: "Otoyolda hız sınırı 120 km/sa." -> "... kilometre bölü saat .".
+    A lone "Dr." stays "doktor", and an abbreviation inside a sentence, "Dr. Kaya",
+    keeps no full stop. Every other mark is deleted.
+
+    Returns a pynini.FstLike rewriting the classifier's output
+    """
+    closing = " }"
+    # Anywhere after the end of an earlier token.
+    after_a_token = pynini.accep("} tokens") + NEMO_SIGMA
+    final = pynini.cdrewrite(
+        pynini.cross(_FULL_STOP_MARK + closing, closing + " tokens { name: \".\" }"),
+        after_a_token,
+        "[EOS]",
+        NEMO_SIGMA,
+    )
+    others = pynini.cdrewrite(pynutil.delete(_FULL_STOP_MARK), "", closing, NEMO_SIGMA)
+    return pynini.compose(final, others).optimize()

@@ -181,7 +181,8 @@ def test_custom_whitelist(tmp_path):
 
     assert sorted(os.listdir(cache)) == ["_cased_tr_tn_True_deterministictr_whitelist.tsv.far", _VERBALIZER_FAR]
     restored = Normalizer(input_case="cased", lang="tr", whitelist=str(path), cache_dir=cache)
-    assert restored.normalize("Hst. ve Gn.Md.") == "hastane ve genel müdür"
+    # The sentence ends in an abbreviation, whose full stop is kept.
+    assert restored.normalize("Hst. ve Gn.Md.") == "hastane ve genel müdür ."
 
 
 @pytest.mark.run_only_on('CPU')

@@ -103,3 +103,8 @@ $2 milyon~iki milyon dolar
 -12,345€~eksi on iki virgül üç yüz kırk beş avro
 €14,30~on dört avro otuz sent
 14,30€~on dört avro otuz sent
+25 €~yirmi beş avro
+100 ₺~yüz lira
+12 $~on iki dolar
+12,50 €~on iki avro elli sent
+1 milyon ₺~bir milyon lira

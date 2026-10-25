@@ -17,12 +17,14 @@ from pynini.lib import pynutil, rewrite
 
 from nemo_text_processing.text_normalization.tr.graph_utils import (
     NEMO_CHAR,
+    NEMO_DIGIT,
     NEMO_SIGMA,
     NEMO_SPACE,
     TR_ALPHA,
     TR_COMMA_WORD,
     TR_DECIMAL_SEPARATOR,
     TR_LOWER,
+    TR_MINUS_WORD,
     GraphFst,
     delete_preserve_order,
 )
@@ -40,6 +42,8 @@ from nemo_text_processing.text_normalization.tr.verbalizers.date import DateFst 
 
 # The ASCII apostrophe and the typographic one, U+2019, which Turkish text also uses.
 _APOSTROPHE = "'"
+# TDK's reading of the "/" sign, used for suffixed fractions.
+_PER_WORD = "bölü"
 _TYPOGRAPHIC_APOSTROPHE = "’"
 
 
@@ -100,7 +104,16 @@ class SuffixFst(GraphFst):
         - cardinals, decimals ("12,5'te"), dates written day first or with the month
           name ("29.09.2026'da", "29 Eylül'de"), times ("14.00'te" -> "on dörtte"),
           percentages ("%4'ü" -> "yüzde dördü");
-        - money with a currency code ("100 TL'ye"; symbol forms are not accepted);
+        - money with a currency code ("100 TL'ye") or a symbol ("$20'dan" -> "yirmi
+          dolardan", "100 €'ya"): after a symbol the suffix follows the currency's
+          spoken name;
+        - fractions, read with "bölü" in written order, the reading TDK ties the
+          suffix to: "3/4'ünü" -> "üç bölü dördünü". FractionFst's "dörtte üç" ends
+          in the numerator, which the written suffix does not agree with, and the
+          denominator cannot be moved in front of it, so a suffixed fraction is read
+          this way and an unsuffixed one keeps "dörtte üç";
+        - two part dates take the suffix of the month name or of the month's number,
+          "29.09'de" and "29.09'da" -> "yirmi dokuz eylülde";
         - measurements whose unit ends in a letter ("5 kg'dan", "20 °C'de"): TDK writes
           a suffix after "m²" or "cm³" without an apostrophe ("m²ye"), so those are
           not accepted here;
@@ -143,9 +156,7 @@ class SuffixFst(GraphFst):
         - the same forms with an apostrophe ("Alm.'dan", "5 m²'ye", "T.C.'de");
         - "MÖ" and "MS", which take an apostrophe but have no attested suffixed
           reading of their spoken expansions;
-        - fractions, whose written suffix TDK ties to a "bölü" reading that
-          FractionFst does not use, telephone numbers, URL paths, currency symbols,
-          decimal quantities ("1,5 milyon'da"), other derivational suffixes
+        - telephone numbers, URL paths, decimal quantities ("1,5 milyon'da"), other derivational suffixes
           ("2'şer"), and a sentence final full stop;
         - stacked suffixes where no apostrophe is written ("Alm.dakiler"): without
           the apostrophe the end of the base is not marked, and these forms overlap
@@ -217,6 +228,16 @@ class SuffixFst(GraphFst):
         self.decimal_reading = decimal_reading = (
             cardinal.graph + pynini.cross(TR_DECIMAL_SEPARATOR, f" {TR_COMMA_WORD} ") + decimal.graph
         )
+        # "$20" -> "yirmi dolar": money written with a currency symbol.
+        symbol = pynini.union(*[row[0] for row in load_labels(get_abs_path("data/money/currency_symbols.tsv"))])
+        symbol_money_reading = pynini.compose(NEMO_SIGMA + symbol + NEMO_SIGMA, money.graph)
+        # "3/4" -> "üç bölü dört"
+        digits = pynini.closure(NEMO_DIGIT, 1)
+        numerator = pynini.compose(digits, cardinal.graph)
+        denominator = pynini.compose(pynini.difference(digits, "0"), numerator)
+        sign = pynini.closure(pynini.cross("-", f"{TR_MINUS_WORD} "), 0, 1)
+        fraction_reading = sign + numerator + pynini.cross("/", f" {_PER_WORD} ") + denominator
+
         # Dates read without field permutation, i.e. day first and textual dates.
         self.date_reading = date_reading = pynini.compose(
             date.final_graph, DateVerbalizer().graph + delete_preserve_order
@@ -252,9 +273,12 @@ class SuffixFst(GraphFst):
             "cardinal": suffixed(cardinal.graph, numeral_with_ordinal),
             "decimal": suffixed(decimal_reading, numeral),
             "date": suffixed(date_reading, numeral),
+            "day_month": self._day_month(cardinal, date_reading, written_suffix) + stacked,
             "time": suffixed(time.graph, numeral),
             "percentage": suffixed(percentage.graph, numeral),
             "money": self._money(money, abbreviation, written_suffix) + stacked,
+            "symbol_money": suffixed(symbol_money_reading, word),
+            "fraction": suffixed(fraction_reading, numeral),
             "measure": suffixed(unit_reading, word),
             "abbreviation": suffixed(acronym_reading, word),
             "electronic": suffixed(address_reading, word),
@@ -314,6 +338,28 @@ class SuffixFst(GraphFst):
             branches.append(
                 pynini.compose(
                     spoken + written_suffix,
+                    inflect_by_anchor(anchor, CASE_SUFFIXES + DERIVATIONAL_SUFFIXES, exceptions=HARMONY_EXCEPTIONS),
+                )
+            )
+        return pynini.union(*branches).optimize()
+
+    @staticmethod
+    def _day_month(
+        cardinal: GraphFst, date_reading: "pynini.FstLike", written_suffix: "pynini.FstLike"
+    ) -> "pynini.FstLike":
+        """
+        A two part date may also take the suffix of its month's number, which is what
+        the writer sees: "29.09'da" is spelled after "dokuz" but read "yirmi dokuz
+        eylülde", as "29.09'de" is, after "eylül".
+        """
+        days = pynini.union(*[str(day) for day in range(24, 32)])
+        branches = []
+        for month in range(1, 13):
+            written = pynini.compose(days + "." + pynini.union(str(month), f"{month:02d}"), date_reading)
+            anchor = rewrite.top_rewrite(str(month), cardinal.graph)
+            branches.append(
+                pynini.compose(
+                    written + written_suffix,
                     inflect_by_anchor(anchor, CASE_SUFFIXES + DERIVATIONAL_SUFFIXES, exceptions=HARMONY_EXCEPTIONS),
                 )
             )

@@ -62,11 +62,9 @@ _INVALID = [
     ("₺",),
     ("TL",),
     ("USD",),
-    ("€ 25",),  # a symbol attaches directly
-    ("25 €",),
+    ("€ 25",),  # a symbol before the amount attaches directly
     ("₺ 100",),
-    ("100 ₺",),
-    ("1 milyon ₺",),
+    ("25  €",),
     ("EUR 25",),  # a code follows the amount after one space
     ("EUR25",),
     ("25EUR",),

@@ -77,3 +77,7 @@
 10 J~on jul
 9,8 N~dokuz virgül sekiz nevton
 1 bar~bir bar
+8 GB~sekiz gigabayt
+250 MB~iki yüz elli megabayt
+1 TB~bir terabayt
+512 KB~beş yüz on iki kilobayt

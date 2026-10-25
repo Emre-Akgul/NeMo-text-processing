@@ -67,3 +67,7 @@ Eylül 2026~eylül iki bin yirmi altı
 Ocak 2026~ocak iki bin yirmi altı
 Ekim 1923~ekim bin dokuz yüz yirmi üç
 Eyl. 2026~eylül iki bin yirmi altı
+29.09~yirmi dokuz eylül
+24.05~yirmi dört mayıs
+31.12~otuz bir aralık
+30.4~otuz nisan
