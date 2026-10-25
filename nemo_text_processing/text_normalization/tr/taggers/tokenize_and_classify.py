@@ -31,6 +31,7 @@ from nemo_text_processing.text_normalization.tr.graph_utils import (
 )
 from nemo_text_processing.text_normalization.tr.taggers.abbreviation import AbbreviationFst
 from nemo_text_processing.text_normalization.tr.taggers.cardinal import CardinalFst
+from nemo_text_processing.text_normalization.tr.taggers.code import CodeFst
 from nemo_text_processing.text_normalization.tr.taggers.date import DateFst
 from nemo_text_processing.text_normalization.tr.taggers.decimal import DecimalFst
 from nemo_text_processing.text_normalization.tr.taggers.electronic import ElectronicFst
@@ -108,6 +109,7 @@ _WEIGHTS = {
     "punctuation_mark": 0.1,
     "joined_token_character": 0.0001,
     "word": 3,
+    "code": 1.5,
     "verbatim": 10,
     "unattested_abbreviation": 3.01,
     "unattested_suffix": 3.01,
@@ -209,6 +211,7 @@ class ClassifyFst(GraphFst):
         self.electronic = ElectronicFst(deterministic=deterministic)
         self.whitelist = WhiteListFst(input_case=input_case, deterministic=deterministic, input_file=whitelist)
         self.abbreviation = AbbreviationFst(whitelist=self.whitelist, deterministic=deterministic)
+        self.code = CodeFst(cardinal=self.cardinal, abbreviation=self.abbreviation, deterministic=deterministic)
         self.suffix = SuffixFst(
             cardinal=self.cardinal,
             decimal=self.decimal,
@@ -220,6 +223,8 @@ class ClassifyFst(GraphFst):
             abbreviation=self.abbreviation,
             electronic=self.electronic,
             whitelist=self.whitelist,
+            ordinal=self.ordinal,
+            code=self.code,
             deterministic=deterministic,
         )
         self.range = RangeFst(
@@ -251,11 +256,13 @@ class ClassifyFst(GraphFst):
 
         written_suffix = pynini.union("'", "’") + pynini.closure(TR_LOWER, 1)
         acronym_suffixes = self.suffix.branches["abbreviation"]
-        attested_suffixes = pynini.union(
-            *[branch for name, branch in self.suffix.branches.items() if name != "abbreviation"],
-            pynini.compose(attested + written_suffix, acronym_suffixes),
+        attested_suffixes = self.suffix.finish(
+            pynini.union(
+                *[branch for name, branch in self.suffix.branches.items() if name != "abbreviation"],
+                pynini.compose(attested + written_suffix, acronym_suffixes),
+            )
         )
-        unattested_suffixes = pynini.compose(unattested + written_suffix, acronym_suffixes)
+        unattested_suffixes = self.suffix.finish(pynini.compose(unattested + written_suffix, acronym_suffixes))
 
         # Each class's token graph, by the name of its weight.
         self.token_graphs = dict(
@@ -311,6 +318,7 @@ class ClassifyFst(GraphFst):
         ]
         classify_mixed = pynini.union(
             *[pynutil.add_weight(_mark_full_stop(self.token_graphs[name]), _WEIGHTS[name]) for name in semantic],
+            pynutil.add_weight(_mark_full_stop(self.code.fst), _WEIGHTS["code"]),
             pynutil.add_weight(pynutil.insert("name: \"") + verbatim + pynutil.insert("\""), _WEIGHTS["verbatim"]),
         )
 

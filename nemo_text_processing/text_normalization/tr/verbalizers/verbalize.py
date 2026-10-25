@@ -15,6 +15,7 @@
 from nemo_text_processing.text_normalization.en.verbalizers.abbreviation import AbbreviationFst
 from nemo_text_processing.text_normalization.tr.graph_utils import GraphFst
 from nemo_text_processing.text_normalization.tr.verbalizers.cardinal import CardinalFst
+from nemo_text_processing.text_normalization.tr.verbalizers.code import CodeFst
 from nemo_text_processing.text_normalization.tr.verbalizers.date import DateFst
 from nemo_text_processing.text_normalization.tr.verbalizers.decimal import DecimalFst
 from nemo_text_processing.text_normalization.tr.verbalizers.electronic import ElectronicFst
@@ -61,6 +62,7 @@ class VerbalizeFst(GraphFst):
         suffix = SuffixFst(deterministic=deterministic)
         range_ = RangeFst(deterministic=deterministic)
         abbreviation = AbbreviationFst(deterministic=deterministic)
+        code = CodeFst(deterministic=deterministic)
 
         graph = (
             cardinal.fst
@@ -77,5 +79,6 @@ class VerbalizeFst(GraphFst):
             | suffix.fst
             | range_.fst
             | abbreviation.fst
+            | code.fst
         )
         self.fst = graph.optimize()

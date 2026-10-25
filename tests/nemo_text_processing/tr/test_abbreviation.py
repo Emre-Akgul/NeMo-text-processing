@@ -268,5 +268,6 @@ class TestAbbreviation:
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_graph_has_no_state_explosion(self):
-        assert self.tagger_fst.num_states() < 500, self.tagger_fst.num_states()
+        # The acronym table holds about 35 readings.
+        assert self.tagger_fst.num_states() < 700, self.tagger_fst.num_states()
         assert self.verbalizer_fst.num_states() < 100, self.verbalizer_fst.num_states()

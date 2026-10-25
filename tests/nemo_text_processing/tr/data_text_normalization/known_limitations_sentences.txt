@@ -1,3 +1,7 @@
 compact list~Sonuç 1,2,3,4,5 şeklinde.~Sonuç bir , iki , üç , dört , beş şeklinde .
 double space before a unit~Ürün 5  kg geldi.~Ürün beş kilogram geldi .
 sentence-final number~Liste: 1, 2, 3.~Liste : bir , iki , üç .
+plus sign in a time zone~Toplantı saat 11:00'de (UTC+1) başladı.~Toplantı saat on birde ( u te ce artı bir ) başladı .
+code inside brackets~Hastalarda A(H5N1) virüsü görüldü.~Hastalarda a ( he beş ne bir ) virüsü görüldü .
+degree with a compass point~Kasırga 35°B'nin doğusunda oluştu.~Kasırga otuz beş derece batının doğusunda oluştu .
+initialism in a hyphenated compound~ABD-Çin ilişkileri gelişti.~a be de Çin ilişkileri gelişti .

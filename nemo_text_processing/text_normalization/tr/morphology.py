@@ -66,6 +66,7 @@ from nemo_text_processing.text_normalization.tr.graph_utils import (
     NEMO_SPACE,
     TR_ALPHA,
     TR_CONSONANTS,
+    TR_LOWER,
     TR_VOICED_CONSONANTS,
     TR_VOICELESS_CONSONANTS,
     bos_or_space,
@@ -264,6 +265,45 @@ class SuffixSpec:
             branches.append(ending_in(word) + pynutil.insert(template.format(vowel=harmony[vowel])))
         return pynini.union(*branches).optimize()
 
+    def variants(self, template: str) -> set:
+        """
+        The spellings a writer may use for one template, whatever the stem's vowel:
+        every vowel of the harmony table, and for a suffix beginning with "d" or "t" the
+        other consonant too. "60'dan" is written for "60'tan" and "11.00'dan" for
+        "11.00'den". The buffer consonants y, n and s are never exchanged.
+
+        Args:
+            template: one of the three templates
+
+        Returns a set of strings
+        """
+        forms = {template.format(vowel=vowel) for vowel in sorted({vowel for _, vowel in self.harmony})}
+        forms |= {{"d": "t", "t": "d"}[form[0]] + form[1:] for form in forms if form[:1] in ("d", "t")}
+        return forms
+
+    def attach_lenient(self, prefix: str = "") -> "pynini.FstLike":
+        """
+        Appends to a stem, preceded by ``prefix``, any of the spellings ``variants``
+        accepts for the stem's final segment class: "altmış" -> "altmış'tan",
+        "altmış'dan", "altmış'ten" or "altmış'den". The correct allomorph is one of them.
+
+        Args:
+            prefix: written before the suffix, e.g. an apostrophe
+
+        Returns a pynini.FstLike
+        """
+        anything = pynini.closure(_STEM_CHAR)
+        vowels = pynini.union(*_TR_VOWELS_LOWER)
+
+        def spellings(template: str) -> "pynini.FstLike":
+            return pynutil.insert(pynini.union(*[prefix + form for form in sorted(self.variants(template))]))
+
+        return pynini.union(
+            anything + vowels + spellings(self.after_vowel),
+            anything + TR_VOICED_CONSONANTS + spellings(self.after_voiced),
+            anything + TR_VOICELESS_CONSONANTS + spellings(self.after_voiceless),
+        ).optimize()
+
     @property
     def vowel_initial_after_consonant(self) -> bool:
         """Whether the suffix begins with a vowel after a consonant final stem, which is
@@ -345,7 +385,7 @@ def written_suffix(spec: SuffixSpec, apostrophe: str = "'", exceptions=None) -> 
 
 
 def suffix_validator(
-    specs, stem_alternation: "pynini.FstLike" = None, apostrophe: str = "'", exceptions=None
+    specs, stem_alternation: "pynini.FstLike" = None, apostrophe: str = "'", exceptions=None, lenient: bool = False
 ) -> "pynini.FstLike":
     """
     Maps a spoken stem followed by an apostrophe and a written suffix to the inflected
@@ -355,6 +395,11 @@ def suffix_validator(
         "iki bin yirmi altı'de" -> rejected
         "dört'e" -> "dörde" (with NUMERAL_STEM_ALTERNATION)
 
+    With ``lenient``, a suffix written with another vowel or with "d" and "t" exchanged
+    is also accepted and read correctly, see ``SuffixSpec.variants``:
+
+        "altmış'dan" -> "altmıştan"
+
     Where the anchor is the spoken stem, this is the whole of the suffix logic: the
     written suffix is checked against the stem and the output inflects the same stem.
 
@@ -363,22 +408,28 @@ def suffix_validator(
         stem_alternation: lexical alternation of the stem's final word, or None
         apostrophe: the apostrophe expected in the input
         exceptions: harmony exceptions, see SuffixSpec.attach
+        lenient: also accept the spellings of ``SuffixSpec.variants``
 
     Returns a pynini.FstLike
     """
+
+    def written(spec: SuffixSpec) -> "pynini.FstLike":
+        if lenient:
+            return spec.attach_lenient(prefix=apostrophe)
+        return written_suffix(spec, apostrophe, exceptions)
+
     return pynini.union(
-        *[
-            pynini.compose(
-                pynini.invert(written_suffix(spec, apostrophe, exceptions)),
-                inflect(spec, stem_alternation, exceptions),
-            )
-            for spec in specs
-        ]
+        *[pynini.compose(pynini.invert(written(spec)), inflect(spec, stem_alternation, exceptions)) for spec in specs]
     ).optimize()
 
 
 def inflect_by_anchor(
-    anchor: str, specs, stem_alternation: "pynini.FstLike" = None, apostrophe: str = "'", exceptions=None
+    anchor: str,
+    specs,
+    stem_alternation: "pynini.FstLike" = None,
+    apostrophe: str = "'",
+    exceptions=None,
+    lenient: bool = False,
 ):
     """
     For a written form whose suffix is chosen by a different pronunciation than the one
@@ -393,6 +444,7 @@ def inflect_by_anchor(
         specs: the suffixes to accept
         stem_alternation: lexical alternation of the spoken stem, or None
         apostrophe: the apostrophe expected in the input
+        lenient: also accept the spellings of ``SuffixSpec.variants`` for the anchor
 
     Returns a pynini.FstLike from a spoken stem followed by the written suffix
     """
@@ -400,10 +452,61 @@ def inflect_by_anchor(
 
     branches = []
     for spec in specs:
-        suffix = rewrite.top_rewrite(anchor, written_suffix(spec, apostrophe, exceptions))[len(anchor) :]
+        written = spec.attach_lenient(prefix=apostrophe) if lenient else written_suffix(spec, apostrophe, exceptions)
+        suffixes = [rewritten[len(anchor) :] for rewritten in rewrite.rewrites(anchor, written)]
         branches.append(
             pynini.compose(
-                pynini.closure(_STEM_CHAR, 1) + pynutil.delete(suffix), inflect(spec, stem_alternation, exceptions)
+                pynini.closure(_STEM_CHAR, 1) + pynutil.delete(pynini.union(*suffixes)),
+                inflect(spec, stem_alternation, exceptions),
             )
         )
     return pynini.union(*branches).optimize()
+
+
+def _harmonize(state: str, vowel: str) -> str:
+    """The vowel a suffix spells for ``vowel`` after a syllable with vowel ``state``."""
+    back, rounded = state in "aıou", state in "oöuü"
+    if vowel in "ae":
+        return "a" if back else "e"
+    if vowel in "ıiuü":
+        return {(True, False): "ı", (True, True): "u", (False, False): "i", (False, True): "ü"}[(back, rounded)]
+    return vowel
+
+
+def stacked_suffixes(max_vowels: int = 4) -> dict:
+    """
+    For each vowel a suffixed reading may end with, a transducer that spells the
+    suffixes stacked after it in vowel harmony with it, left to right: after
+    "altılar", the written "i" of "Il-76'leri" is "ı" -> "altıları". Stacked suffixes
+    spelled in harmony are kept as written. The suffixes that do not harmonize keep
+    their vowel: an "i" or "e" right after "k" (-ki, -ken, "yedideki") and "o" (-yor).
+
+    Args:
+        max_vowels: the most vowels the stacked suffixes may contain
+
+    Returns a dict from a vowel to a pynini.FstLike over lower case letters
+    """
+    vowels = "aeıioöuü"
+    consonant = pynini.difference(TR_LOWER, pynini.union(*vowels))
+    consonants = pynini.closure(consonant)
+    after_k = consonants + "k"
+    not_after_k = pynini.difference(consonants, after_k)
+    graphs = {}
+
+    def graph(state: str, remaining: int) -> "pynini.FstLike":
+        if (state, remaining) in graphs:
+            return graphs[(state, remaining)]
+        branches = [consonants]
+        if remaining:
+            for vowel in vowels:
+                spoken = _harmonize(state, vowel)
+                kept = vowel in "ie"
+                branches.append(not_after_k + pynini.cross(vowel, spoken) + graph(spoken, remaining - 1))
+                if kept:
+                    branches.append(after_k + pynini.accep(vowel) + graph(vowel, remaining - 1))
+                else:
+                    branches.append(after_k + pynini.cross(vowel, spoken) + graph(spoken, remaining - 1))
+        graphs[(state, remaining)] = pynini.union(*branches).optimize()
+        return graphs[(state, remaining)]
+
+    return {vowel: graph(vowel, max_vowels) for vowel in vowels}

@@ -64,7 +64,12 @@ class TestRange:
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_suffix_on_the_second_end_is_checked(self):
-        """The suffix follows the second end's reading, "96" -> "doksan altı"."""
-        assert self._accepts("1995-96'da")
-        assert not self._accepts("1995-96'de")
-        assert not self._accepts("1995-96'daler")
+        """The suffix follows the second end's reading, "96" -> "doksan altı", also when
+        it is spelled with another vowel, as SuffixFst reads it; stacked suffixes are put
+        in harmony."""
+        assert rewrite.rewrites("1995-96'da", self.tagger.graph) == ["bin dokuz yüz doksan beş doksan altıda"]
+        assert rewrite.rewrites("1995-96'de", self.tagger.graph) == ["bin dokuz yüz doksan beş doksan altıda"]
+        assert rewrite.rewrites("1995-96'daler", self.tagger.graph) == ["bin dokuz yüz doksan beş doksan altıdalar"]
+        assert rewrite.rewrites("1995-96'yı", self.tagger.graph) == ["bin dokuz yüz doksan beş doksan altıyı"]
+        # a buffer consonant is never left out
+        assert not self._accepts("1995-96'ı")

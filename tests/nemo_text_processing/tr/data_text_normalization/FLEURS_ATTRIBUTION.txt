@@ -1,0 +1,12 @@
+test_cases_sentences_fleurs.txt contains sentences from the Turkish (tr_tr)
+transcriptions of FLEURS, used as written inputs, each with its spoken form.
+
+FLEURS: Few-shot Learning Evaluation of Universal Representations of Speech.
+Alexis Conneau, Min Ma, Simran Khanuja, Yu Zhang, Vera Axelrod, Siddharth Dalmia,
+Jason Riesa, Clara Rivera, Ankur Bapna. 2022. https://arxiv.org/abs/2205.12446
+Data: https://huggingface.co/datasets/google/fleurs
+
+The FLEURS data is licensed under the Creative Commons Attribution 4.0
+International License (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+The written sentences are used unchanged; the spoken forms are new and were
+produced for this test set.

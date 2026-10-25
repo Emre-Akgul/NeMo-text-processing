@@ -38,7 +38,7 @@ _DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_text_norm
 # All capital strings that AbbreviationFst reads letter by letter but the classifier
 # keeps as words, since they are neither in the acronym table nor in
 # known_initialisms.tsv (Phase 16 policy).
-_UNATTESTED_ABBREVIATIONS = {"BM", "TV", "PTT", "DSİ", "KHK", "TC", "AI", "ÇŞ", "ĞÜÖ", "IİI", "İTÜ"}
+_UNATTESTED_ABBREVIATIONS = {"PTT", "DSİ", "KHK", "TC", "ÇŞ", "ĞÜÖ", "IİI", "İTÜ"}
 
 
 def _normalizer(deterministic: bool = True) -> Normalizer:

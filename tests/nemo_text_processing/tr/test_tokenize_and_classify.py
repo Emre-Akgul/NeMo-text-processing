@@ -142,11 +142,11 @@ _SENTENCES = [
     ("294-6605", ["telephone"]),
     # a run mixing digits with letters is read whole or kept as written, with the
     # punctuation inside it
-    ("802.11n'nin hızı arttı.", ["word", "word", "word", "punct"]),
-    ("COVID-19 salgını", ["word", "word"]),
-    ("(COVID-19),", ["punct", "word", "punct"]),
-    ("HJR-3 ve 4x4", ["word", "word", "word"]),
-    ("600Mbit/s", ["word"]),
+    ("802.11n'nin hızı arttı.", ["suffix", "word", "word", "punct"]),
+    ("COVID-19 salgını", ["code", "word"]),
+    ("(COVID-19),", ["punct", "code", "punct"]),
+    ("HJR-3 ve 4x4", ["code", "word", "code"]),
+    ("600Mbit/s", ["measure"]),
 ]
 
 # Punctuation written against a semantic token stays outside it.
@@ -273,15 +273,16 @@ class TestClassifier:
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_every_suffix_electronic_overlap_is_a_suffix(self):
-        """All 86 distinct input strings both grammars accept classify as suffixed
-        abbreviations. The shared acceptor is determinized, so each string has one
+        """All 289 distinct input strings both grammars accept classify as suffixed
+        abbreviations; most are a suffix spelled with another vowel or consonant,
+        "Fr.ta" for "Fr.da" and "Gen.un" for "Gen.in", which SuffixFst also reads. The shared acceptor is determinized, so each string has one
         path, and checked acyclic, so the paths can be listed."""
         suffix = pynini.project(_CLASSIFIER.token_graphs["suffix"], "input").optimize()
         electronic = pynini.project(_CLASSIFIER.token_graphs["electronic"], "input").optimize()
         shared = pynini.determinize(pynini.intersect(suffix, electronic).optimize()).optimize()
         assert shared.properties(pynini.ACYCLIC, True) & pynini.ACYCLIC
         written = list(shared.paths().istrings())
-        assert len(written) == len(set(written)) == 86
+        assert len(written) == len(set(written)) == 289
         for form in written:
             assert _classes(_best(form)) == ["suffix"], form
 

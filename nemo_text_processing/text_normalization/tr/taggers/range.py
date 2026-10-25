@@ -74,12 +74,17 @@ class RangeFst(GraphFst):
 
         first = pynini.union(cardinal.graph, suffix.decimal_reading, percentage.graph, time.graph)
         numeric = pynini.union(NEMO_DIGIT, "%") + NEMO_SIGMA
-        numeric_suffixes = [
-            suffix.branches[name] for name in ["cardinal", "decimal", "date", "time", "percentage", "money", "measure"]
-        ]
+        numeric_suffixes = suffix.finish(
+            pynini.union(
+                *[
+                    suffix.branches[name]
+                    for name in ["cardinal", "decimal", "date", "time", "percentage", "money", "measure"]
+                ]
+            )
+        )
         second = pynini.compose(
             numeric,
-            pynini.union(first, measure.graph, money.graph, suffix.date_reading, *numeric_suffixes),
+            pynini.union(first, measure.graph, money.graph, suffix.date_reading, numeric_suffixes),
         )
         ordinals = ordinal.bare_ordinals + dash + ordinal.graph
 

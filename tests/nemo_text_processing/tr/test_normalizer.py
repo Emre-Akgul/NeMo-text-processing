@@ -150,7 +150,7 @@ def test_unattested_abbreviations():
     # (integrated coverage, Phase 16 policy), so the public API returns them as written.
     tagger = AbbreviationTagger(whitelist=WhiteListFst())
     verbalizer = AbbreviationVerbalizer()
-    unattested = {"BM", "TV", "PTT", "DSİ", "KHK", "TC", "AI", "ÇŞ", "ĞÜÖ", "IİI", "İTÜ"}
+    unattested = {"PTT", "DSİ", "KHK", "TC", "ÇŞ", "ĞÜÖ", "IİI", "İTÜ"}
     golden = dict(parse_test_case_file("tr/data_text_normalization/test_cases_abbreviation.txt"))
     for written in unattested:
         tagged = rewrite.top_rewrite(pynini.escape(written), tagger.fst)

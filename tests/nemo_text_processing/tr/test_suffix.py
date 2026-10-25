@@ -21,6 +21,8 @@ rules (``_oracle``), from the canonical spoken reading of each base, not from th
 grammars under test.
 """
 
+import re
+
 import pynini
 import pytest
 from parameterized import parameterized
@@ -48,15 +50,44 @@ from ..utils import parse_test_case_file
 
 _TEST_CASES = 'tr/data_text_normalization/test_cases_suffix.txt'
 
-# Suffixes TDK joins without an apostrophe, written with one.
-_APOSTROPHE_WHERE_TDK_HAS_NONE = ["vb.'leri", "Alm.'dan", "No.'lu", "No.'suz", "T.C.'de", "T.C.'da", "5 m²'ye"]
-_APOSTROPHE_WHERE_TDK_HAS_NONE += ["5 cm³'e", "5 dk.'da", "5 sa.'te", "5 sn.'de", "Dr.'a", "Prof.'ün", "İng.'yi"]
+# Suffixes TDK joins without an apostrophe, written with one: read as if it were not.
+_APOSTROPHE_WHERE_TDK_HAS_NONE = [
+    ("vb.'leri", "ve benzerleri"),
+    ("Alm.'dan", "Almancadan"),
+    ("No.'lu", "nolu"),
+    ("No.'suz", "nosuz"),
+    ("T.C.'de", "te cede"),
+    ("T.C.'da", "te cede"),
+    ("5 m²'ye", "beş metrekareye"),
+    ("5 cm³'e", "beş santimetreküpe"),
+    ("5 dk.'da", "beş dakikada"),
+    ("5 sa.'te", "beş saatte"),
+    ("5 sn.'de", "beş saniyede"),
+    ("Dr.'a", "doktora"),
+    ("Prof.'ün", "profesörün"),
+    ("İng.'yi", "İngilizceyi"),
+]
 # A space between the base and the suffix, or a missing apostrophe where one is needed.
 _DETACHED = ["Alm. dan", "T.C. de", "5 m² ye", "No. lu", "AŞde", "AŞ.de", "AŞ' de", "AŞ 'de"]
-# Suffixes after the wrong pronunciation: the letter, not the expansion, or the wrong
-# harmony.
-_WRONG_NO_APOSTROPHE_ALLOMORPHS = ["Dr.e", "Prof.un", "Alm.den", "İng.yı", "T.C.da", "5 dk.de", "5 sa.ta"]
-_WRONG_NO_APOSTROPHE_ALLOMORPHS += ["5 m²ya", "5 cm³a", "AŞ'da", "AŞ'nın", "Org.un", "Gen.a", "No.lı", "No.sız"]
+# Suffixes spelled with another vowel or with "d" and "t" exchanged, after the letter
+# instead of the expansion, or in the wrong harmony: read with the right suffix.
+_VARIANT_JOINED_SPELLINGS = [
+    ("Dr.e", "doktora"),
+    ("Prof.un", "profesörün"),
+    ("Alm.den", "Almancadan"),
+    ("İng.yı", "İngilizceyi"),
+    ("T.C.da", "te cede"),
+    ("5 dk.de", "beş dakikada"),
+    ("5 sa.ta", "beş saatte"),
+    ("5 m²ya", "beş metrekareye"),
+    ("5 cm³a", "beş santimetreküpe"),
+    ("AŞ'da", "anonim şirkette"),
+    ("AŞ'nın", "anonim şirketin"),
+    ("Org.un", "orgeneralin"),
+    ("Gen.a", "generale"),
+]
+# Lexical forms are listed, not inflected, so they have no variant spellings.
+_NOT_LEXICAL = ["No.lı", "No.sız"]
 # Not accepted: dotted initialisms other than T.C., the whitelist entries that take no
 # productive suffix, ASCII powers, general powers, other forms of vb. and No., and a
 # sentence final full stop.
@@ -78,12 +109,26 @@ _NOT_JOINED += [
 # ("MS'de"), but their expansions are adverbial phrases with no attested suffixed
 # reading.
 _DEFERRED_WHITELIST_SUFFIXES = ["MÖ'de", "MÖ'den", "MS'de", "MS'den"]
-_OTHER_DEFERRED = ["3/4'i", "100€'ye", "$20'den", "0532 123 45 67'yi"]
+_OTHER_DEFERRED = ["0532 123 45 67'yi"]
 _OTHER_DEFERRED += ["https://example.com/foo'da", "1,5 milyon'da", "2'şer", "2026-09-29'da"]
-# Stacked suffixes that break vowel harmony, or follow a wrong first suffix; and
-# stacking where no apostrophe is written.
-_DISHARMONIC_STACKS = ["4'üncu", "2016'dalerde", "1850'lerda", "%50'sıni", "2007'dekı", "TDK'dekilar"]
-_DISHARMONIC_STACKS += ["2016'deki", "1850'larda", "5'lığı", "Alm.daki", "T.C.deki", "5 dk.daki"]
+# Stacked suffixes that break vowel harmony, or follow a first suffix spelled with
+# another vowel: read in harmony.
+_DISHARMONIC_STACKS = [
+    ("4'üncu", "dördüncü"),
+    ("2016'dalerde", "iki bin on altıdalarda"),
+    ("1850'lerda", "bin sekiz yüz ellilerde"),
+    ("%50'sıni", "yüzde ellisini"),
+    ("2007'dekı", "iki bin yedideki"),
+    ("TDK'dekilar", "te de kedekiler"),
+    ("2016'deki", "iki bin on altıdaki"),
+    ("1850'larda", "bin sekiz yüz ellilerde"),
+    ("5'lığı", "beşliği"),
+    ("3/4'i", "üç bölü dördü"),
+    ("100€'ye", "yüz avroya"),
+    ("$20'den", "yirmi dolardan"),
+]
+# Stacking where no apostrophe is written.
+_UNMARKED_STACKS = ["Alm.daki", "T.C.deki", "5 dk.daki"]
 _MALFORMED = ["tdk'den", "Tdk'den", "-5'ten", "TDK'den.", "'da", "2026'"]
 
 # An independent statement of the rules.
@@ -131,6 +176,18 @@ def _count_paths(fst):
         for arc in fst.arcs(state):
             counts[arc.nextstate] += counts[state]
     return total
+
+
+def _spellings(spoken, family, numeral=True):
+    """The spellings read as the suffix the stem selects: the allomorph of its final
+    segment class with any vowel of the family's harmony, and for a suffix beginning
+    with "d" or "t" the other consonant too."""
+    harmony, after_vowel, after_voiced, after_voiceless = _FAMILIES[family]
+    final = spoken[-1]
+    template = after_vowel if final in _VOWELS else after_voiceless if final in _VOICELESS else after_voiced
+    forms = {template.replace("V", vowel) for vowel in set(harmony.values())}
+    forms |= {{"d": "t", "t": "d"}[form[0]] + form[1:] for form in forms if form[0] in "dt"}
+    return forms
 
 
 # Every written allomorph of each family, the wrong ones included.
@@ -335,40 +392,78 @@ class TestSuffix:
         if "'" in test_input:
             base, suffix = test_input.rsplit("'", 1)
             assert self._normalize(f"{base}’{suffix}") == expected
-            wrong_forms = [f"{base}{suffix}", f"{base}''{suffix}", f"{base} '{suffix}", f"{base}' {suffix}"]
+            wrong_forms = [f"{base}''{suffix}", f"{base} '{suffix}", f"{base}' {suffix}"]
+            if re.fullmatch(r"[0-9]+(\.[0-9]{3})*", base) and len(suffix) > 1:
+                # "20li" for "20'li": after digits the apostrophe may be left out
+                assert self._normalize(f"{base}{suffix}") == expected
+            else:
+                wrong_forms.append(f"{base}{suffix}")
         elif test_input in _LEXICAL_FORMS:
             base, suffix = test_input.split(".", 1)
             base += "."
-            wrong_forms = [f"{base}'{suffix}", f"{base} {suffix}"]
+            assert self._normalize(f"{base}'{suffix}") == expected
+            wrong_forms = [f"{base} {suffix}"]
         else:
-            # joined after a full stop or a superscript: never an apostrophe
+            # joined after a full stop or a superscript, where an apostrophe written
+            # anyway is accepted
             split = max(test_input.rfind(c) for c in ".²³") + 1
             base, suffix = test_input[:split], test_input[split:]
-            wrong_forms = [f"{base}'{suffix}", f"{base}’{suffix}", f"{base} {suffix}", f"{base}''{suffix}"]
+            assert self._normalize(f"{base}'{suffix}") == expected
+            assert self._normalize(f"{base}’{suffix}") == expected
+            wrong_forms = [f"{base} {suffix}", f"{base}''{suffix}"]
         for wrong in wrong_forms:
             assert not self._accepts(wrong), wrong
         assert not self._accepts(f"{test_input}.")
 
     @parameterized.expand(
-        [(w,) for w in ["2026'de", "3'den", "6'den", "4'a", "40'e", "14.00'da", "THY'da", "PKK'ye", "BMW'da"]]
-        + [(w,) for w in ["NATO'den", "TÜBİTAĞ'ın", "2'inci", "8.'inci", "100 TL'ya", "100 EUR'ya", "5 kg'den"]]
-        + [(w,) for w in ["CPU'de", "GPU'ye", "%25'u", "29.09.2026'de", "09.15'de", "2'ya", "4'üncu", "40'i"]]
+        [
+            ("2026'de", "iki bin yirmi altıda"),
+            ("3'den", "üçten"),
+            ("6'den", "altıdan"),
+            ("4'a", "dörde"),
+            ("40'e", "kırka"),
+            ("14.00'da", "on dörtte"),
+            ("THY'da", "te he yede"),
+            ("PKK'ye", "pe ka kaya"),
+            ("BMW'da", "be me vede"),
+            ("NATO'den", "natodan"),
+            ("100 TL'ya", "yüz liraya"),
+            ("100 EUR'ya", "yüz avroya"),
+            ("5 kg'den", "beş kilogramdan"),
+            ("CPU'de", "si pi yuda"),
+            ("GPU'ye", "ci pi yuya"),
+            ("%25'u", "yüzde yirmi beşi"),
+            ("29.09.2026'de", "yirmi dokuz eylül iki bin yirmi altıda"),
+            ("09.15'de", "dokuz on beşte"),
+            ("2'ya", "ikiye"),
+            ("4'üncu", "dördüncü"),
+            ("40'i", "kırkı"),
+            ("60'dan", "altmıştan"),
+            ("11.00'dan", "on birden"),
+        ]
     )
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
-    def test_wrong_allomorph_is_rejected(self, written):
+    def test_variant_spelling_is_read_correctly(self, written, expected):
+        assert self._normalize(written) == expected
+
+    @parameterized.expand([(w,) for w in ["TÜBİTAĞ'ın", "2'inci", "8.'inci", "6'ı", "NBA'in"]])
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_wrong_buffer_consonant_is_rejected(self, written):
+        """A buffer consonant, y, n or s, is never supplied or exchanged."""
         assert not self._accepts(written)
 
-    @parameterized.expand([(w,) for w in _DETACHED + _WRONG_NO_APOSTROPHE_ALLOMORPHS + _NOT_JOINED])
+    @parameterized.expand(_VARIANT_JOINED_SPELLINGS + _APOSTROPHE_WHERE_TDK_HAS_NONE)
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_joined_variant_spelling_is_read_correctly(self, written, expected):
+        assert self._normalize(written) == expected
+
+    @parameterized.expand([(w,) for w in _DETACHED + _NOT_LEXICAL + _NOT_JOINED])
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_joined_suffix_forms_are_checked(self, written):
-        assert not self._accepts(written)
-
-    @parameterized.expand([(w,) for w in _APOSTROPHE_WHERE_TDK_HAS_NONE])
-    @pytest.mark.run_only_on('CPU')
-    @pytest.mark.unit
-    def test_apostrophe_where_tdk_has_none_is_rejected(self, written):
         assert not self._accepts(written)
 
     @parameterized.expand([(w,) for w in _DEFERRED_WHITELIST_SUFFIXES])
@@ -390,10 +485,12 @@ class TestSuffix:
             for family in _CASE_FAMILIES:
                 suffix, expected = _oracle(spoken, family, numeral=False)
                 assert rewrite.rewrites(f"{written}{suffix}", self.tagger.graph) == [expected], (written, family)
-                for allomorph in set(_ALLOMORPHS[family]) - {suffix}:
-                    if allomorph not in {_oracle(spoken, f, numeral=False)[0] for f in _CASE_FAMILIES}:
-                        assert not self._accepts(f"{written}{allomorph}"), (written, allomorph)
-                assert not self._accepts(f"{written}'{suffix}")
+                read = set().union(*[_spellings(spoken, f, numeral=False) for f in _CASE_FAMILIES])
+                for allomorph in set(_ALLOMORPHS[family]) - read:
+                    assert not self._accepts(f"{written}{allomorph}"), (written, allomorph)
+                for spelling in _spellings(spoken, family, numeral=False):
+                    assert expected in rewrite.rewrites(f"{written}{spelling}", self.tagger.graph), (written, spelling)
+                assert rewrite.rewrites(f"{written}'{suffix}", self.tagger.graph) == [expected]
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
@@ -409,7 +506,7 @@ class TestSuffix:
         """Every unit written with a final full stop or superscript, from MeasureFst's
         data, joined to every suffix; "m2" and other ASCII powers are not joined."""
         units = [u for u, _ in load_labels(get_abs_path("data/measure/unit.tsv")) if u[-1] in "²³"]
-        units += [u for u, _ in load_labels(get_abs_path("data/measure/unit_abbreviations.tsv"))]
+        units += [u for u, _ in load_labels(get_abs_path("data/measure/unit_abbreviations.tsv")) if u.endswith(".")]
         measure = _GRAMMARS["measure"].graph
         for unit in units:
             for number in ["5", "12,5", "1.000"]:
@@ -418,7 +515,7 @@ class TestSuffix:
                 for family in _CASE_FAMILIES:
                     suffix, expected = _oracle(spoken, family, numeral=False)
                     assert rewrite.rewrites(f"{written}{suffix}", self.tagger.graph) == [expected], (written, family)
-                    assert not self._accepts(f"{written}'{suffix}")
+                    assert rewrite.rewrites(f"{written}'{suffix}", self.tagger.graph) == [expected]
         for unit, _ in load_labels(get_abs_path("data/measure/unit.tsv")):
             if unit[-1] in "23":
                 for family in _CASE_FAMILIES:
@@ -438,7 +535,8 @@ class TestSuffix:
             assert rewrite.rewrites(f"AŞ'{written_suffix}", self.tagger.graph) == [expected], family
             assert rewrite.rewrites(f"AŞ’{written_suffix}", self.tagger.graph) == [expected], family
             assert not self._accepts(f"AŞ{written_suffix}")
-            for allomorph in set(_ALLOMORPHS[family]) - {_oracle(anchor, f, numeral=False)[0] for f in _CASE_FAMILIES}:
+            read = set().union(*[_spellings(anchor, f, numeral=False) for f in _CASE_FAMILIES])
+            for allomorph in set(_ALLOMORPHS[family]) - read:
                 assert not self._accepts(f"AŞ'{allomorph}"), allomorph
 
     @pytest.mark.run_only_on('CPU')
@@ -452,11 +550,17 @@ class TestSuffix:
         for wrong in ["numaralu", "numarasuz", "ve benzeriler"]:
             assert wrong not in {rewrite.top_rewrite(w, self.tagger.graph) for w in _LEXICAL_FORMS}
 
-    @parameterized.expand([(w,) for w in _OTHER_DEFERRED + _MALFORMED + _DISHARMONIC_STACKS])
+    @parameterized.expand([(w,) for w in _OTHER_DEFERRED + _MALFORMED + _UNMARKED_STACKS])
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
     def test_other_deferred_and_malformed_forms_are_rejected(self, written):
         assert not self._accepts(written)
+
+    @parameterized.expand(_DISHARMONIC_STACKS)
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_disharmonic_stacks_are_read_in_harmony(self, written, expected):
+        assert self._normalize(written) == expected
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
@@ -483,7 +587,11 @@ class TestSuffix:
                 continue
             suffix, spoken = _oracle(reading, family, numeral=False)
             assert self._normalize(f"{acronym}'{suffix}") == spoken
-            for allomorph in set(_ALLOMORPHS[family]) - {suffix}:
+            read = _spellings(reading, family, numeral=False)
+            for spelling in read:
+                assert self._normalize(f"{acronym}'{spelling}") == spoken, (acronym, spelling)
+            others = set().union(*[_spellings(reading, f, numeral=False) for f in _FAMILIES if f != "ordinal"])
+            for allomorph in set(_ALLOMORPHS[family]) - others:
                 assert not self._accepts(f"{acronym}'{allomorph}"), (acronym, allomorph)
 
     @pytest.mark.run_only_on('CPU')
@@ -496,7 +604,10 @@ class TestSuffix:
             for family in _FAMILIES:
                 suffix, inflected = _oracle(spoken, family)
                 assert rewrite.rewrites(f"{number}'{suffix}", self.tagger.graph) == [inflected], (number, family)
-                for allomorph in set(_ALLOMORPHS[family]) - {suffix}:
+                for spelling in _spellings(spoken, family):
+                    assert inflected in rewrite.rewrites(f"{number}'{spelling}", self.tagger.graph), (number, spelling)
+                others = set().union(*[_spellings(spoken, f) for f in _FAMILIES])
+                for allomorph in set(_ALLOMORPHS[family]) - others:
                     assert not self._accepts(f"{number}'{allomorph}"), (number, allomorph)
 
     @pytest.mark.run_only_on('CPU')
@@ -519,7 +630,8 @@ class TestSuffix:
                 continue
             assert pynini.difference(shared, dotted_abbreviations).optimize().num_states() == 0
             assert shared.properties(pynini.ACYCLIC, True) & pynini.ACYCLIC
-            assert _count_paths(shared) == 86
+            # The suffixes spelled with another vowel or consonant included.
+            assert _count_paths(shared) == 289
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
@@ -530,8 +642,15 @@ class TestSuffix:
         assert rewrite.rewrites("Org.e", self.tagger.graph) == ["orgenerale"]
         assert rewrite.rewrites("Tuğg.de", self.tagger.graph) == ["tuğgeneralde"]
         assert rewrite.rewrites("x.orgeneral'e", self.tagger.graph) == ["x nokta orgenerale"]
-        for wrong in ["Gen.a", "Org.a", "Org.un", "Tuğg.da", "x.orgeneral'a", "x.general'ın"]:
-            assert not self._accepts(wrong), wrong
+        for variant, expected in [
+            ("Gen.a", "generale"),
+            ("Org.a", "orgenerale"),
+            ("Org.un", "orgeneralin"),
+            ("Tuğg.da", "tuğgeneralde"),
+            ("x.orgeneral'a", "x nokta orgenerale"),
+            ("x.general'ın", "x nokta generalin"),
+        ]:
+            assert rewrite.rewrites(variant, self.tagger.graph) == [expected], variant
 
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
