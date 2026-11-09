@@ -93,6 +93,8 @@ TR_VOICED_CONSONANTS = pynini.difference(TR_CONSONANTS, TR_VOICELESS_CONSONANTS)
 TR_DECIMAL_SEPARATOR = ","
 TR_THOUSANDS_SEPARATOR = "."
 TR_COMMA_WORD = "virgül"
+# A full stop between digits that is not a thousands separator, "6.5", is read "nokta".
+TR_POINT_WORD = "nokta"
 TR_MINUS_WORD = "eksi"
 TR_PERCENT_WORD = "yüzde"
 

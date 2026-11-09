@@ -134,3 +134,6 @@ $20'dan~yirmi dolardan
 31.12'de~otuz bir aralıkta
 TCK'nin~te ce kenin
 8 KB'lık~sekiz kilobaytlık
+6.5'lik~altı nokta beşlik
+6.5'e~altı nokta beşe
+2.5'tan~iki nokta beşten

@@ -19,6 +19,7 @@ from nemo_text_processing.text_normalization.tr.graph_utils import (
     NEMO_NOT_QUOTE,
     TR_COMMA_WORD,
     TR_MINUS_WORD,
+    TR_POINT_WORD,
     GraphFst,
     delete_space,
     insert_space,
@@ -31,6 +32,7 @@ class DecimalFst(GraphFst):
         decimal { integer_part: "on iki" fractional_part: "beş" } -> on iki virgül beş
         decimal { negative: "true" integer_part: "bir" fractional_part: "beş" quantity: "milyon" }
             -> eksi bir virgül beş milyon
+        decimal { integer_part: "altı" point: "true" fractional_part: "beş" } -> altı nokta beş
 
     Args:
         cardinal: verbalizer CardinalFst, supplies the shared integer field reader
@@ -53,7 +55,12 @@ class DecimalFst(GraphFst):
             + pynini.closure(NEMO_NOT_QUOTE, 1)
             + pynutil.delete("\"")
         )
-        self.fractional = pynutil.insert(f"{TR_COMMA_WORD} ") + self.fractional_default
+        # "6.5" is tagged with point: "true" and read "nokta"; every other decimal "virgül".
+        separator = pynini.union(
+            pynutil.insert(f"{TR_COMMA_WORD} "),
+            pynini.cross("point: \"true\"", TR_POINT_WORD) + delete_space + insert_space,
+        )
+        self.fractional = separator + self.fractional_default
 
         self.quantity = (
             delete_space

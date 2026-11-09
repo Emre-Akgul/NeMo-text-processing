@@ -75,3 +75,9 @@
 10 bin~on bin
 0,5 bin~sıfır virgül beş bin
 1,05 bin~bir virgül sıfır beş bin
+6.5~altı nokta beş
+2.5~iki nokta beş
+0.5~sıfır nokta beş
+6.75~altı nokta yetmiş beş
+-6.5~eksi altı nokta beş
+3.1 milyon~üç nokta bir milyon

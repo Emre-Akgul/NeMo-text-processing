@@ -89,6 +89,12 @@ from nemo_text_processing.utils.logging import logger
 #   number and ".11n'nin" kept, and "600Mbit/s" is not split at the slash. The
 #   verbatim token costs more than any realistic run of semantic tokens joined by
 #   punctuation, so it never replaces a reading of the whole chunk.
+# - A number followed by an apostrophe and a suffix that SuffixFst does not accept,
+#   "2017'e" (for "2017'ye"), would otherwise be kept verbatim, digits and all. As a
+#   fallback it is read as the number followed by the suffix exactly as written,
+#   "iki bin on yedie", without harmony, stem alternation or buffer letters. It costs
+#   more than every reading of SuffixFst and CodeFst, so it only applies where those
+#   read nothing, and less than the verbatim token, which it replaces.
 _WEIGHTS = {
     "whitelist": 1.01,
     "suffix": 1.02,
@@ -110,6 +116,7 @@ _WEIGHTS = {
     "joined_token_character": 0.0001,
     "word": 3,
     "code": 1.5,
+    "unchecked_suffix": 5,
     "verbatim": 10,
     "unattested_abbreviation": 3.01,
     "unattested_suffix": 3.01,
@@ -316,9 +323,15 @@ class ClassifyFst(GraphFst):
         semantic = [
             name for name, weight in _WEIGHTS.items() if name in self.token_graphs and weight < _WEIGHTS["word"]
         ]
+        # "2017'e" -> "iki bin on yedie": a number with a suffix SuffixFst does not
+        # accept, read with the suffix as written; see _WEIGHTS.
+        number_reading = pynini.union(self.cardinal.graph, self.suffix.decimal_reading, self.decimal.point_reading)
+        apostrophe = pynini.union("'", "’")
+        unchecked_suffix = suffix_token(number_reading + pynutil.delete(apostrophe) + pynini.closure(TR_LOWER, 1))
         classify_mixed = pynini.union(
             *[pynutil.add_weight(_mark_full_stop(self.token_graphs[name]), _WEIGHTS[name]) for name in semantic],
             pynutil.add_weight(_mark_full_stop(self.code.fst), _WEIGHTS["code"]),
+            pynutil.add_weight(unchecked_suffix, _WEIGHTS["unchecked_suffix"]),
             pynutil.add_weight(pynutil.insert("name: \"") + verbatim + pynutil.insert("\""), _WEIGHTS["verbatim"]),
         )
 

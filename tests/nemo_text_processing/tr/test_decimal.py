@@ -113,6 +113,20 @@ _PRECISION_GROUPS = [
     ["1,0", "1,00", "1,000"],
 ]
 
+# A full stop that cannot be a thousands separator is a decimal point, "nokta": the
+# English spelling, which FLEURS readers speak as "altı nokta beş".
+_POINT_DECIMALS = [
+    ("6.5", "altı nokta beş"),
+    ("1.2", "bir nokta iki"),
+    ("1.23", "bir nokta yirmi üç"),
+    ("0.5", "sıfır nokta beş"),
+    ("3.05", "üç nokta sıfır beş"),
+    ("1000.5", "bin nokta beş"),
+    ("3.14159", "üç nokta on dört bin yüz elli dokuz"),
+    ("-6.5", "eksi altı nokta beş"),
+    ("2.5 milyon", "iki nokta beş milyon"),
+]
+
 _INVALID_INPUTS = [
     ("",),
     ("1",),  # bare cardinal
@@ -121,9 +135,11 @@ _INVALID_INPUTS = [
     (",5",),  # Turkish always writes the integer part
     ("1,",),  # no fractional part
     ("1,,5",),
-    ("1.2",),  # full stop is not a decimal separator
-    ("1.23",),
     ("1.234",),  # grouped CARDINAL, not a decimal
+    ("12.345.678",),  # grouped CARDINAL
+    ("01.5",),  # leading zero in the integer part
+    ("1.5.2",),  # two full stops
+    (".5",),  # no integer part
     ("1.23,45",),  # malformed grouping
     ("12.34,5",),  # malformed grouping
     ("1.2345,6",),  # malformed grouping
@@ -203,6 +219,20 @@ class TestDecimal:
     @pytest.mark.unit
     def test_quantity(self, test_input, expected):
         assert self._normalize(test_input) == expected
+
+    @parameterized.expand(_POINT_DECIMALS)
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_full_stop_decimal_point(self, test_input, expected):
+        assert self._normalize(test_input) == expected
+
+    @parameterized.expand(_POINT_DECIMALS)
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_point_reading_matches_tagger_and_verbalizer(self, test_input, expected):
+        if " " in test_input:  # quantities are not part of the bare reading
+            return
+        assert rewrite.top_rewrite(test_input, self.tagger.point_reading) == expected.removeprefix("eksi ")
 
     @parameterized.expand([(group,) for group in _PRECISION_GROUPS])
     @pytest.mark.run_only_on('CPU')

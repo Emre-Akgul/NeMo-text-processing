@@ -261,6 +261,15 @@ class SuffixFst(GraphFst):
         self.date_reading = date_reading = pynini.compose(
             date.final_graph, DateVerbalizer().graph + delete_preserve_order
         )
+        # "6.5" -> "altı nokta beş": a decimal written with a full stop. A time or a date
+        # written the same way, "17.30'da", "29.09'da", keeps its own branch, so the
+        # branches stay functional.
+        timed_or_dated = pynini.union(pynini.project(time.graph, "input"), pynini.project(date_reading, "input"))
+        timed_or_dated = pynini.arcmap(timed_or_dated, map_type="rmweight").optimize()
+        point_reading = pynini.compose(
+            pynini.difference(pynini.project(decimal.point_reading, "input"), timed_or_dated),
+            decimal.point_reading,
+        ).optimize()
         # Units that end in a letter: not "m²", "m2", "°" or "dk.".
         unit_reading = pynini.compose(ends_in_letter, measure.graph)
         # Acronyms, not "T.C.".
@@ -299,6 +308,8 @@ class SuffixFst(GraphFst):
                 then_stacked(numeral_with_ordinal),
             ).optimize(),
             "decimal": suffixed(decimal_reading, numeral),
+            # "6.5'lik" -> "altı nokta beşlik"
+            "point_decimal": suffixed(point_reading, numeral),
             "date": suffixed(date_reading, numeral),
             "day_month": then_stacked(self._day_month(cardinal, date_reading, written_suffix)),
             "time": suffixed(time.graph, numeral),
